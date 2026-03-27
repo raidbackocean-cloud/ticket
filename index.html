@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>取置算出表 Pro</title>
     <style>
+        /* すべての要素ではみ出しを防止 */
+        * { box-sizing: border-box; }
+
         :root {
             --bg: #f8fafc; --card: #ffffff; --input-bg: #f1f5f9;
             --text-main: #1e293b; --text-sub: #64748b; --accent: #0284c7;
@@ -20,11 +23,11 @@
         body {
             font-family: -apple-system, sans-serif;
             background: var(--bg); color: var(--text-main);
-            margin: 0; padding: 15px 15px 240px; /* 下部に余裕を */
-            transition: background 0.3s; line-height: 1.4;
+            margin: 0; padding: 15px 15px 240px;
+            transition: 0.3s; line-height: 1.4;
         }
 
-        .container { max-width: 500px; margin: auto; }
+        .container { max-width: 500px; margin: auto; width: 100%; }
 
         header {
             display: flex; justify-content: space-between; align-items: center;
@@ -39,26 +42,29 @@
         }
 
         section {
-            background: var(--card); border-radius: 16px; padding: 18px;
+            background: var(--card); border-radius: 16px; padding: 15px;
             margin-bottom: 15px; border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; text-transform: uppercase; }
 
-        /* スマホで崩れないグリッド */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-        .field { display: flex; flex-direction: column; }
+        /* グリッドのはみ出しを徹底修正 */
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* スマホでも2列維持、はみ出さない */
+            gap: 10px; 
+            width: 100%;
+        }
+        .field { display: flex; flex-direction: column; width: 100%; }
         label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
         
         input {
             background: var(--input-bg); border: 1px solid var(--border);
             color: var(--text-main); padding: 12px; border-radius: 10px;
-            font-size: 1rem; outline: none; width: 100%; box-sizing: border-box;
-            -webkit-appearance: none; /* iOSの影消し */
+            font-size: 1rem; outline: none; width: 100%;
+            -webkit-appearance: none;
         }
 
-        /* 出演者カード */
         .band-card {
             background: var(--card); border-radius: 12px; padding: 15px;
             margin-bottom: 12px; border: 1px solid var(--border);
@@ -68,11 +74,11 @@
             background: transparent; border: none; border-bottom: 2px solid var(--input-bg);
             color: var(--text-main); font-weight: bold; font-size: 1rem; flex-grow: 1; padding: 5px 0;
         }
-        .btn-del { color: var(--danger); background: #fee2e2; border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+        .btn-del { color: var(--danger); background: #fee2e2; border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: bold; }
         body.dark-mode .btn-del { background: #450a0a; }
 
-        .band-info { display: grid; grid-template-columns: 90px 1fr; gap: 15px; align-items: center; }
-        @media (max-width: 360px) { .band-info { grid-template-columns: 1fr; } } /* 極小画面用 */
+        .band-info { display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center; }
+        @media (max-width: 360px) { .band-info { grid-template-columns: 1fr; } }
 
         .badge-grid { display: flex; flex-direction: column; gap: 6px; background: var(--input-bg); padding: 10px; border-radius: 10px; }
         .badge { font-size: 0.75rem; color: var(--text-sub); display: flex; justify-content: space-between; align-items: baseline; }
@@ -84,31 +90,29 @@
             border-radius: 12px; font-weight: bold; margin: 10px 0; cursor: pointer;
         }
 
-        /* 固定集計エリア */
         .summary-fixed {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--summary-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border-top: 1px solid var(--border);
-            padding: 15px 15px calc(15px + env(safe-area-inset-bottom)); /* iPhoneのノッチ対応 */
+            padding: 15px 15px calc(15px + env(safe-area-inset-bottom));
             z-index: 1000;
         }
 
         .sum-content { max-width: 500px; margin: auto; }
         .sum-row { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-sub); margin-bottom: 4px; }
         .sum-main { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
-        .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); letter-spacing: -1px; }
+        .sum-total { font-size: 1.8rem; font-weight: 900; }
 
         .split-box {
             background: var(--card); border: 1px solid var(--border);
             padding: 12px; border-radius: 12px;
             display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;
         }
-        .ninzu { width: 45px; background: var(--input-bg); border: 1px solid var(--border); color: var(--accent); font-weight: bold; text-align: center; border-radius: 6px; padding: 4px; margin: 0 4px; }
+        .ninzu { width: 45px; background: var(--input-bg); border: 1px solid var(--border); color: var(--accent); font-weight: bold; text-align: center; border-radius: 6px; padding: 4px; }
         
         .status { padding: 4px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; color: #fff; }
         .status-up { background: var(--success); }
         .status-down { background: var(--danger); }
-
         .m-plus { color: var(--success); font-weight: bold; }
         .m-minus { color: var(--danger); font-weight: bold; }
     </style>
@@ -124,18 +128,18 @@
     <section>
         <h2>基本設定</h2>
         <div class="grid">
-            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="keisan()" inputmode="numeric"></div>
-            <div class="field"><label>チケット単価</label><input type="number" id="base-price" value="2000" oninput="keisan()" inputmode="numeric"></div>
-            <div class="field"><label>バック開始数</label><input type="number" id="threshold" value="6" oninput="keisan()" inputmode="numeric"></div>
-            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="keisan()" inputmode="numeric"></div>
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="saveAndCalc()"></div>
+            <div class="field"><label>単価</label><input type="number" id="base-price" value="2000" oninput="saveAndCalc()"></div>
+            <div class="field"><label>バック開始</label><input type="number" id="threshold" value="6" oninput="saveAndCalc()"></div>
+            <div class="field"><label>率(%)</label><input type="number" id="percent" value="50" oninput="saveAndCalc()"></div>
         </div>
     </section>
 
     <section>
         <h2>主催・制作</h2>
         <div class="grid">
-            <div class="field"><label>主催取置(枚)</label><input type="number" id="org-count" value="0" oninput="keisan()" inputmode="numeric"></div>
-            <div class="field"><label>制作経費(円)</label><input type="number" id="org-cost" value="0" oninput="keisan()" inputmode="numeric"></div>
+            <div class="field"><label>主催取置</label><input type="number" id="org-count" value="0" oninput="saveAndCalc()"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="saveAndCalc()"></div>
         </div>
     </section>
 
@@ -155,7 +159,7 @@
             <div class="sum-total" id="net-profit">¥0</div>
         </div>
         <div class="split-box">
-            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="keisan()" inputmode="numeric"> 名で折半</span>
+            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="saveAndCalc()"> 名で折半</span>
             <span id="per-person" class="m-plus">¥0</span>
         </div>
     </div>
@@ -166,22 +170,23 @@
 
     function toggleTheme() {
         document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
     }
 
-    function addBand() {
+    function addBand(name = "", count = 0) {
         bandId++;
         const div = document.createElement('div');
         div.className = 'band-card';
         div.id = `band-${bandId}`;
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" value="出演枠 ${bandId}">
+                <input type="text" class="band-name" value="${name || '出演枠 ' + bandId}" oninput="saveData()">
                 <button class="btn-del" onclick="removeBand(${bandId})">削除</button>
             </div>
             <div class="band-info">
                 <div class="field">
                     <label>取置数</label>
-                    <input type="number" class="count" value="0" min="0" oninput="keisan()" inputmode="numeric">
+                    <input type="number" class="count" value="${count}" min="0" oninput="saveAndCalc()">
                 </div>
                 <div class="badge-grid">
                     <div class="badge">小計: <strong>¥<span class="b-sales">0</span></strong></div>
@@ -190,13 +195,19 @@
             </div>
         `;
         document.getElementById('band-list').appendChild(div);
-        keisan();
+        saveAndCalc();
     }
 
     function removeBand(id) {
         const el = document.getElementById(`band-${id}`);
         if (el) el.remove();
+        saveAndCalc();
+    }
+
+    // 保存して計算
+    function saveAndCalc() {
         keisan();
+        saveData();
     }
 
     function keisan() {
@@ -214,18 +225,14 @@
         document.querySelectorAll('.band-card').forEach(band => {
             const count = parseFloat(band.querySelector('.count').value) || 0;
             const kojinSales = count * price;
-            
             let back = 0;
-            // ロジック: 指定数(threshold)枚目からバック発生
             if (count >= threshold && count > 0) {
                 const target = count - (threshold - 1);
                 if (target > 0) back = (target * price) * (percent / 100);
             }
             const finalBack = Math.floor(back);
-
             band.querySelector('.b-sales').innerText = kojinSales.toLocaleString();
             band.querySelector('.b-back').innerText = finalBack.toLocaleString();
-            
             totalSales += kojinSales;
             totalBack += finalBack;
         });
@@ -233,7 +240,6 @@
         const netProfit = totalSales - totalBack - (hallFee + orgCost);
         const perPerson = Math.floor(netProfit / (splitNum || 1));
 
-        // 集計表示更新
         document.getElementById('txt-sales').innerText = totalSales.toLocaleString();
         document.getElementById('txt-back').innerText = totalBack.toLocaleString();
         document.getElementById('net-profit').innerText = `¥${netProfit.toLocaleString()}`;
@@ -254,11 +260,52 @@
         }
     }
 
-    // 初期化
+    // ローカルストレージにデータを保存
+    function saveData() {
+        const config = {
+            hallFee: document.getElementById('hall-fee').value,
+            basePrice: document.getElementById('base-price').value,
+            threshold: document.getElementById('threshold').value,
+            percent: document.getElementById('percent').value,
+            orgCount: document.getElementById('org-count').value,
+            orgCost: document.getElementById('org-cost').value,
+            splitNum: document.getElementById('split-num').value,
+            bands: []
+        };
+        document.querySelectorAll('.band-card').forEach(band => {
+            config.bands.push({
+                name: band.querySelector('.band-name').value,
+                count: band.querySelector('.count').value
+            });
+        });
+        localStorage.setItem('calcProData', JSON.stringify(config));
+    }
+
+    // データの復元
     window.onload = () => {
-        for(let i=0; i<3; i++) addBand();
+        // ダークモード復元
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+
+        const saved = localStorage.getItem('calcProData');
+        if (saved) {
+            const data = JSON.parse(saved);
+            document.getElementById('hall-fee').value = data.hallFee;
+            document.getElementById('base-price').value = data.basePrice;
+            document.getElementById('threshold').value = data.threshold;
+            document.getElementById('percent').value = data.percent;
+            document.getElementById('org-count').value = data.orgCount;
+            document.getElementById('org-cost').value = data.orgCost;
+            document.getElementById('split-num').value = data.splitNum;
+            if (data.bands && data.bands.length > 0) {
+                data.bands.forEach(b => addBand(b.name, b.count));
+            } else {
+                for(let i=0; i<3; i++) addBand();
+            }
+        } else {
+            for(let i=0; i<3; i++) addBand();
+        }
+        keisan();
     };
 </script>
-
 </body>
 </html>
