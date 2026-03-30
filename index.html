@@ -31,6 +31,10 @@
             --summary-bg: rgba(255, 255, 255, 0.9);
         }
 
+        * {
+            box-sizing: border-box; /* 枠外への突き出し防止 */
+        }
+
         body {
             font-family: -apple-system, sans-serif;
             background: var(--bg);
@@ -72,7 +76,18 @@
 
         h2 { font-size: 0.75rem; color: var(--accent); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        /* グリッドレイアウトのレスポンシブ対応 */
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+        }
+        
+        /* 画面が狭いときは1カラムにする */
+        @media (max-width: 380px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
         .field { display: flex; flex-direction: column; }
         label { font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; color: var(--text-sub); }
         
@@ -84,9 +99,9 @@
             border-radius: 10px;
             font-size: 1rem;
             outline: none;
+            width: 100%; /* 親要素に収める */
         }
 
-        /* プレースホルダーの文字色を調整 */
         input::placeholder {
             color: var(--text-sub);
             opacity: 0.6;
@@ -101,7 +116,6 @@
 
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         
-        /* 名前入力欄のスタイル調整 */
         .band-name { 
             background: transparent; 
             border: none; 
@@ -130,6 +144,7 @@
             border-radius: 12px;
             font-weight: bold;
             margin-top: 10px;
+            cursor: pointer;
         }
 
         .summary-fixed {
@@ -237,7 +252,6 @@
         const div = document.createElement('div');
         div.className = 'band-card';
         div.id = `band-${bandId}`;
-        // valueを空にしてplaceholderに変更
         div.innerHTML = `
             <div class="band-head">
                 <input type="text" class="band-name" placeholder="出演者 ${bandId}">
@@ -314,7 +328,7 @@
         }
     }
 
-    // 初期化
+    // 初期起動
     for(let i=0; i<3; i++) addBand();
 </script>
 
