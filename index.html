@@ -5,30 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>取置算出表 Pro</title>
     <style>
-        /* デフォルトはライトモード（明るい） */
+        /* デフォルト：ダークモード */
         :root {
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --input-bg: #f1f5f9;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-            --accent: #0284c7;
-            --success: #10b981;
-            --danger: #ef4444;
-            --border: #e2e8f0;
-            --summary-bg: rgba(255, 255, 255, 0.9);
-        }
-
-        /* ダークモード（暗い） */
-        body.dark-mode {
             --bg: #0f172a;
             --card: #1e293b;
             --input-bg: #334155;
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
             --accent: #38bdf8;
+            --success: #10b981;
+            --danger: #ef4444;
             --border: #334155;
             --summary-bg: rgba(15, 23, 42, 0.95);
+        }
+
+        /* ライトモード */
+        body.light-mode {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --input-bg: #f1f5f9;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --accent: #0284c7;
+            --border: #e2e8f0;
+            --summary-bg: rgba(255, 255, 255, 0.9);
         }
 
         body {
@@ -49,16 +49,16 @@
         }
         h1 { font-size: 1.2rem; font-weight: 800; margin: 0; }
 
-        /* 切り替えボタン */
         .theme-toggle {
             background: var(--input-bg);
             border: 1px solid var(--border);
             color: var(--text-main);
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: bold;
             cursor: pointer;
+            min-width: 110px;
         }
 
         section {
@@ -86,6 +86,12 @@
             outline: none;
         }
 
+        /* プレースホルダーの文字色を調整 */
+        input::placeholder {
+            color: var(--text-sub);
+            opacity: 0.6;
+        }
+
         .band-card {
             background: var(--input-bg);
             border-radius: 12px;
@@ -94,7 +100,20 @@
         }
 
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; font-size: 1rem; width: 70%; padding: 5px 0; }
+        
+        /* 名前入力欄のスタイル調整 */
+        .band-name { 
+            background: transparent; 
+            border: none; 
+            border-bottom: 1px solid var(--border); 
+            color: var(--text-main); 
+            font-weight: bold; 
+            font-size: 1rem; 
+            width: 70%; 
+            padding: 5px 0; 
+            border-radius: 0;
+        }
+
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
 
         .band-info { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: center; }
@@ -153,7 +172,7 @@
 <div class="container">
     <header>
         <h1>取置算出表</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">モード切替</button>
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">ライトモードへ</button>
     </header>
 
     <section>
@@ -202,7 +221,15 @@
     let bandId = 0;
 
     function toggleTheme() {
-        document.body.classList.toggle('dark-mode');
+        const body = document.body;
+        const btn = document.getElementById('theme-btn');
+        body.classList.toggle('light-mode');
+        
+        if (body.classList.contains('light-mode')) {
+            btn.innerText = 'ダークモードへ';
+        } else {
+            btn.innerText = 'ライトモードへ';
+        }
     }
 
     function addBand() {
@@ -210,9 +237,10 @@
         const div = document.createElement('div');
         div.className = 'band-card';
         div.id = `band-${bandId}`;
+        // valueを空にしてplaceholderに変更
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" value="出演者 ${bandId}">
+                <input type="text" class="band-name" placeholder="出演者 ${bandId}">
                 <button class="btn-del" onclick="removeBand(${bandId})">削除</button>
             </div>
             <div class="band-info">
@@ -231,7 +259,8 @@
     }
 
     function removeBand(id) {
-        document.getElementById(`band-${id}`).remove();
+        const target = document.getElementById(`band-${id}`);
+        if(target) target.remove();
         keisan();
     }
 
@@ -285,6 +314,7 @@
         }
     }
 
+    // 初期化
     for(let i=0; i<3; i++) addBand();
 </script>
 
