@@ -3,271 +3,582 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Live Timetable Pro</title>
+    <title>取置算出表 Pro</title>
     <style>
+        /* デフォルトはライトモード（明るい） */
         :root {
-            --bg: #ffffff; --card-bg: #f5f5f7; --input-bg: #e5e5ea; 
-            --accent-main: #007aff; --text-main: #1d1d1f; --text-dim: #86868b; --danger: #ff3b30;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --input-bg: #f1f5f9;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --accent: #0284c7;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --summary-bg: rgba(255, 255, 255, 0.9);
         }
-        [data-theme="dark"] {
-            --bg: #000000; --card-bg: #1c1c1e; --input-bg: #2c2c2e;
-            --accent-main: #0a84ff; --text-main: #f5f5f7; --text-dim: #a1a1a6;
+
+        /* ダークモード（暗い） */
+        body.dark-mode {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --input-bg: #334155;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+            --summary-bg: rgba(15, 23, 42, 0.95);
         }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 10px; line-height: 1.2; padding-bottom: 90px; }
-        input, select { font-size: 16px !important; border: none; background: transparent; color: inherit; outline: none; }
 
-        .header-controls { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .btn-reset { color: var(--danger); background: none; border: none; font-size: 0.75em; font-weight: bold; cursor: pointer; }
-        .theme-toggle-btn { color: var(--text-dim); background: none; border: none; font-size: 0.75em; font-weight: bold; cursor: pointer; }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 220px;
+            transition: background 0.3s, color 0.3s;
+        }
 
-        .card { background: var(--card-bg); padding: 10px; border-radius: 10px; margin-bottom: 6px; }
-        .input-title { font-size: 1.2em; font-weight: 800; width: 100%; color: var(--text-main); margin-bottom: 4px; }
-        .event-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-        .input-sub { background: var(--input-bg); padding: 5px 8px; border-radius: 6px; font-size: 12px; }
+        .container { max-width: 500px; margin: auto; }
+
+        header { 
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; 
+        }
+        h1 { font-size: 1.2rem; font-weight: 800; margin: 0; }
+
+        /* 切り替えボタン */
+        .theme-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h2 { font-size: 0.75rem; color: var(--accent); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .field { display: flex; flex-direction: column; }
+        label { font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; color: var(--text-sub); }
         
-        .usage-container { display: flex; gap: 4px; margin-top: 6px; }
-        .usage-box { flex: 1; padding: 4px; border-radius: 6px; text-align: center; background: var(--input-bg); }
-        .usage-box span { display: block; font-size: 8px; color: var(--text-dim); }
-        .usage-box div { font-size: 0.9em; font-weight: bold; font-family: monospace; color: var(--accent-main); }
-        .usage-box.alert { background: var(--danger) !important; color: white !important; }
+        input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+        }
 
-        .controls-card { background: var(--card-bg); padding: 8px; border-radius: 8px; margin-bottom: 6px; }
-        .custom-select { font-weight: bold; color: var(--accent-main); padding: 0 2px; }
+        .band-card {
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
 
-        .tabs { display: flex; gap: 2px; }
-        .tab { flex: 1; padding: 8px; border: none; background: var(--card-bg); color: var(--text-dim); font-weight: bold; border-radius: 8px 8px 0 0; opacity: 0.5; font-size: 0.85em; }
-        .tab.active { background: var(--card-bg); color: var(--accent-main); opacity: 1; }
+        .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; font-size: 1rem; width: 70%; padding: 5px 0; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
 
-        .table-container { background: var(--card-bg); border-radius: 0 0 10px 10px; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        tr { display: flex; padding: 8px 10px; border-bottom: 1px solid var(--input-bg); align-items: center; position: relative; }
-        tr.system-row { background: rgba(0,0,0,0.02); }
+        .band-info { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: center; }
+        .badge-grid { display: flex; flex-direction: column; gap: 4px; }
+        .badge { font-size: 0.7rem; color: var(--text-sub); display: flex; justify-content: space-between; }
+        .badge strong { color: var(--text-main); }
+
+        .btn-add {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            color: var(--accent);
+            border: 2px dashed var(--accent);
+            border-radius: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .summary-fixed {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--summary-bg);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .summary-content { max-width: 500px; margin: auto; }
+        .sum-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-bottom: 4px; }
+        .sum-main { display: flex; justify-content: space-between; align-items: baseline; margin: 8px 0; }
+        .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); }
+
+        .split-box {
+            background: var(--card);
+            padding: 10px 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+        }
+        .ninzu { width: 40px; background: var(--input-bg); border: none; color: var(--accent); font-weight: bold; text-align: center; border-radius: 5px; padding: 2px; }
         
-        .col-time { width: 42px; text-align: left; }
-        .col-no { width: 32px; text-align: center; font-weight: bold; font-size: 0.8em; color: var(--text-dim); display: flex; align-items: center; justify-content: center; }
-        .col-name { flex: 1; min-width: 60px; }
-        .col-params { display: flex; gap: 6px; align-items: center; font-size: 0.75em; color: var(--text-dim); margin: 0 8px; }
-        .col-end-time { width: 45px; text-align: right; font-family: monospace; font-size: 0.85em; color: var(--text-dim); font-weight: 500; }
-        .col-del { width: 25px; text-align: right; }
+        .status { padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
+        .status-up { background: var(--success); color: white; }
+        .status-down { background: var(--danger); color: white; }
 
-        .time-start { font-weight: bold; color: var(--accent-main); font-size: 1em; font-family: monospace; }
-        .name-input { width: 100%; font-size: 14px; font-weight: 600; color: var(--text-main); }
-        .input-dark { width: 28px; text-align: center; font-weight: bold; color: var(--text-main); border-bottom: 1px solid var(--text-dim); }
-        
-        .btn-add { background: var(--accent-main); color: white; width: calc(100% - 20px); padding: 12px; border-radius: 10px; font-weight: bold; border: none; position: fixed; bottom: 15px; left: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 100; }
-        .btn-del { color: var(--text-dim); font-size: 1em; background: none; border: none; opacity: 0.3; padding: 0; }
-        .dragging { opacity: 0.2; background: var(--accent-main) !important; }
-
-        .time-summary { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .time-label { font-size: 0.75em; font-weight: bold; color: var(--text-dim); }
-        .time-val { font-weight: bold; color: var(--accent-main); font-size: 0.9em; }
-        .meta-text { font-size: 11px; color: var(--text-dim); margin-left: 4px; font-weight: normal; }
+        .m-plus { color: var(--success); font-weight: bold; }
+        .m-minus { color: var(--danger); font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="header-controls">
-        <button class="btn-reset" onclick="resetData()">リセット</button>
-        <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">ダークモードに切り替え</button>
-    </div>
+<div class="container">
+    <header>
+        <h1>取置算出表</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">モード切替</button>
+    </header>
 
-    <div class="card">
-        <input type="text" id="eventTitle" class="input-title" placeholder="イベント名" oninput="saveInfoOnly()">
-        <div class="event-info-grid">
-            <input type="date" id="eventDate" class="input-sub" oninput="saveInfoOnly()">
-            <input type="text" id="eventPlace" class="input-sub" placeholder="会場" oninput="saveInfoOnly()">
+    <section>
+        <h2>設定</h2>
+        <div class="grid">
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" step="100" oninput="keisan()"></div>
+            <div class="field"><label>単価</label><input type="number" id="base-price" value="2000" step="100" oninput="keisan()"></div>
+            <div class="field"><label>バック開始数</label><input type="number" id="threshold" value="5" step="1" oninput="keisan()"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" step="10" min="0" oninput="keisan()"></div>
         </div>
-        <div class="usage-container">
-            <div class="usage-box"><span>合計</span><div id="totalUsageDisplay">00:00</div></div>
-            <div class="usage-box"><span>規定</span><select id="limitH" class="custom-select" onchange="saveLimit()"></select>:<select id="limitM" class="custom-select" onchange="saveLimit()"></select></div>
-            <div id="statusBox" class="usage-box"><span id="statusLabel">残り</span><div id="diffDisplay">00:00</div></div>
+    </section>
+
+    <section>
+        <h2>主催 / 制作</h2>
+        <div class="grid">
+            <div class="field"><label>主催取置</label><input type="number" id="org-count" value="0" step="1" oninput="keisan()"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" step="100" oninput="keisan()"></div>
+        </div>
+    </section>
+
+    <section style="background: transparent; padding: 0; border: none; box-shadow: none;">
+        <h2>出演者別</h2>
+        <div id="band-list"></div>
+        <button class="btn-add" onclick="addBand()">＋ 出演枠を追加</button>
+    </section>
+</div>
+
+<div class="summary-fixed">
+    <div class="summary-content">
+        <div class="sum-row">
+            <span>売上合計 ¥<span id="txt-sales">0</span></span>
+            <span>支払合計 ¥<span id="txt-back">0</span></span>
+        </div>
+        <div class="sum-main">
+            <div id="status-tag" class="status">計算中</div>
+            <div class="sum-total" id="net-profit">¥ 0</div>
+        </div>
+        <div class="split-box">
+            <span>共催者 <input type="number" id="split-num" value="3" min="1" class="ninzu" oninput="keisan()"> 名で折半</span>
+            <span id="per-person" class="m-plus">¥ 0</span>
         </div>
     </div>
+</div>
 
-    <div class="controls-card">
-        <div class="time-summary">
-            <div><span class="time-label">入り</span> <span id="staffEntryDisplay" class="time-val">--:--</span></div>
-            <div><span class="time-label">開場</span> <select id="doorH" class="custom-select" onchange="saveDoorTime()"></select>:<select id="doorM" class="custom-select" onchange="saveDoorTime()"></select></div>
-            <div><span class="time-label">終演</span> <span id="topCloseTimeDisplay" class="time-val">--:--</span></div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.7em; color: var(--text-dim);">
-            持ち:<select id="batchPlay" class="custom-select"></select>
-            転換:<select id="batchChange" class="custom-select"></select>
-            <button onclick="applyBatch()" style="color:var(--accent-main); font-weight:bold; background:none; border:none; padding:0;">一括セット</button>
-        </div>
-    </div>
+<script>
+    let bandId = 0;
 
-    <div class="tabs">
-        <button class="tab active" id="btn-performance" onclick="switchTab('performance')">本番</button>
-        <button class="tab" id="btn-rehearsal" onclick="switchTab('rehearsal')">リハ</button>
-    </div>
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+    }
 
-    <div class="table-container">
-        <table><tbody id="tableBody"></tbody></table>
-    </div>
+    function addBand() {
+        bandId++;
+        const div = document.createElement('div');
+        div.className = 'band-card';
+        div.id = `band-${bandId}`;
+        div.innerHTML = `
+            <div class="band-head">
+                <input type="text" class="band-name" value="出演者 ${bandId}">
+                <button class="btn-del" onclick="removeBand(${bandId})">削除</button>
+            </div>
+            <div class="band-info">
+                <div class="field">
+                    <label>取置数</label>
+                    <input type="number" class="count" value="0" min="0" oninput="keisan()">
+                </div>
+                <div class="badge-grid">
+                    <div class="badge">小計: <strong>¥<span class="b-sales">0</span></strong></div>
+                    <div class="badge">バック: <strong style="color:var(--accent)">¥<span class="b-back">0</span></strong></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('band-list').appendChild(div);
+        keisan();
+    }
 
-    <button class="btn-add" onclick="addItem()">枠を追加</button>
+    function removeBand(id) {
+        document.getElementById(`band-${id}`).remove();
+        keisan();
+    }
 
-    <script>
-        const STORAGE_KEY = 'live_data_v28';
-        const INFO_KEY = 'live_info_v28';
-        const THEME_KEY = 'theme_v28';
-        const DOOR_KEY = 'doorTime_v28';
-        const LIMIT_H_KEY = 'limitH_v28';
-        const LIMIT_M_KEY = 'limitM_v28';
-        const CLOSE_KEY = 'closeDur_v28';
-        
-        let currentTab = 'performance';
-        let doorTime = localStorage.getItem(DOOR_KEY) || "17:30";
-        let closeDur = parseInt(localStorage.getItem(CLOSE_KEY)) || 40;
-        let limitH = parseInt(localStorage.getItem(LIMIT_H_KEY)) || 9;
-        let limitM = parseInt(localStorage.getItem(LIMIT_M_KEY)) || 0;
-        
-        let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-            performance: [{ name: "BAND 1", play: 30, change: 10 }, { name: "BAND 2", play: 30, change: 10 }],
-            rehearsal: [{ name: "BAND 2", play: 20, change: 10, no: "2" }, { name: "BAND 1", play: 20, change: 10, no: "1" }]
-        };
+    function keisan() {
+        const price = Math.round(parseFloat(document.getElementById('base-price').value)) || 0;
+        const hallFee = Math.round(parseFloat(document.getElementById('hall-fee').value)) || 0;
+        const orgCount = parseFloat(document.getElementById('org-count').value) || 0;
+        const orgCost = Math.round(parseFloat(document.getElementById('org-cost').value)) || 0;
+        const threshold = parseFloat(document.getElementById('threshold').value) || 0;
+        const percent = parseFloat(document.getElementById('percent').value) || 0;
+        const splitNum = parseInt(document.getElementById('split-num').value) || 1;
 
-        function initSelects() {
-            const dh = document.getElementById('doorH'), dm = document.getElementById('doorM');
-            const lh = document.getElementById('limitH'), lm = document.getElementById('limitM');
-            const bp = document.getElementById('batchPlay'), bc = document.getElementById('batchChange');
-            dh.innerHTML = dm.innerHTML = lh.innerHTML = lm.innerHTML = bp.innerHTML = bc.innerHTML = "";
-            for(let i=0; i<24; i++) { let opt = i.toString().padStart(2,'0'); dh.add(new Option(opt, opt)); lh.add(new Option(opt, opt)); }
-            for(let i=0; i<125; i+=5) { let opt = i.toString().padStart(2,'0'); if(i < 60) { dm.add(new Option(opt, opt)); lm.add(new Option(opt, opt)); } bp.add(new Option(i, i)); bc.add(new Option(i, i)); }
-            let [h, m] = doorTime.split(':'); dh.value = h; dm.value = m;
-            lh.value = limitH.toString().padStart(2,'0'); lm.value = limitM.toString().padStart(2,'0');
-            bp.value = "30"; bc.value = "10";
-            updateThemeBtn();
-        }
+        let totalSales = (orgCount * price);
+        let totalBack = 0;
 
-        function resetData() { if(confirm('全てリセットしますか？')){ localStorage.clear(); location.reload(); } }
-        
-        function toggleTheme() {
-            const current = document.documentElement.dataset.theme;
-            const target = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.dataset.theme = target;
-            localStorage.setItem(THEME_KEY, target);
-            updateThemeBtn();
-        }
-
-        function updateThemeBtn() {
-            const current = document.documentElement.dataset.theme || 'light';
-            document.getElementById('themeBtn').innerText = current === 'dark' ? 'ライトモードに切り替え' : 'ダークモードに切り替え';
-        }
-
-        document.documentElement.dataset.theme = localStorage.getItem(THEME_KEY) || 'light';
-
-        function saveDoorTime() { doorTime = `${document.getElementById('doorH').value}:${document.getElementById('doorM').value}`; localStorage.setItem(DOOR_KEY, doorTime); render(); }
-        function saveLimit() { limitH = parseInt(document.getElementById('limitH').value); limitM = parseInt(document.getElementById('limitM').value); localStorage.setItem(LIMIT_H_KEY, limitH); localStorage.setItem(LIMIT_M_KEY, limitM); renderTimesOnly(); }
-        function switchTab(t) { currentTab = t; document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.id === 'btn-'+t)); render(); }
-        
-        function addItem() {
-            const p = parseInt(document.getElementById('batchPlay').value);
-            const c = parseInt(document.getElementById('batchChange').value);
-            data.performance.push({name: "", play: p, change: c});
-            data.rehearsal.unshift({name: "", play: 20, change: 10, no: ""});
-            refreshAllNos(); saveAndRender();
-        }
-
-        function deleteItem(i) {
-            if (currentTab === 'performance') { data.performance.splice(i, 1); data.rehearsal.splice(data.rehearsal.length - 1 - i, 1); } 
-            else { data.rehearsal.splice(i, 1); data.performance.splice(data.performance.length - 1 - i, 1); }
-            refreshAllNos(); saveAndRender();
-        }
-
-        function refreshAllNos() {
-            const pNames = data.performance.map(it => it.name);
-            const revNames = [...pNames].reverse();
-            data.rehearsal.forEach((it, i) => { 
-                it.name = revNames[i] || ""; 
-                const pIdx = data.performance.length - i; 
-                it.no = (pIdx === data.performance.length) ? "トリ" : pIdx.toString(); 
-            });
-        }
-
-        function updateField(i, f, v) { 
-            if(f==='name'){ 
-                data[currentTab][i].name = v;
-                if(currentTab === 'performance'){ let rIdx = data.rehearsal.length - 1 - i; if(data.rehearsal[rIdx]) data.rehearsal[rIdx].name = v; } 
-                else { let pIdx = data.performance.length - 1 - i; if(data.performance[pIdx]) data.performance[pIdx].name = v; }
+        document.querySelectorAll('.band-card').forEach(band => {
+            const count = parseFloat(band.querySelector('.count').value) || 0;
+            const kojinSales = count * price;
+            let back = 0;
+            if (count >= threshold && count > 0) {
+                const target = count - (threshold - 1);
+                if (target > 0) back = (target * price) * (percent / 100);
             }
-            else if(f==='no') data[currentTab][i].no = v; 
-            else data[currentTab][i][f] = parseInt(v) || 0;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); renderTimesOnly();
+            const finalBack = Math.floor(back);
+            band.querySelector('.b-sales').innerText = kojinSales.toLocaleString();
+            band.querySelector('.b-back').innerText = finalBack.toLocaleString();
+            totalSales += kojinSales;
+            totalBack += finalBack;
+        });
+
+        const netProfit = totalSales - totalBack - (hallFee + orgCost);
+        const perPerson = Math.floor(netProfit / splitNum);
+
+        document.getElementById('txt-sales').innerText = totalSales.toLocaleString();
+        document.getElementById('txt-back').innerText = totalBack.toLocaleString();
+        document.getElementById('net-profit').innerText = `¥${netProfit.toLocaleString()}`;
+        
+        const statusTag = document.getElementById('status-tag');
+        const perPersonElem = document.getElementById('per-person');
+
+        if (netProfit >= 0) {
+            statusTag.innerText = "黒字収益";
+            statusTag.className = "status status-up";
+            perPersonElem.innerText = `分配: ¥${perPerson.toLocaleString()}`;
+            perPersonElem.className = "m-plus";
+        } else {
+            statusTag.innerText = "赤字不足";
+            statusTag.className = "status status-down";
+            perPersonElem.innerText = `負担: ¥${Math.abs(perPerson).toLocaleString()}`;
+            perPersonElem.className = "m-minus";
+        }
+    }
+
+    for(let i=0; i<3; i++) addBand();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>取置算出表 Pro</title>
+    <style>
+        /* デフォルトはライトモード（明るい） */
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --input-bg: #f1f5f9;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --accent: #0284c7;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --summary-bg: rgba(255, 255, 255, 0.9);
         }
 
-        function updateCloseDur(v) { closeDur = parseInt(v)||0; localStorage.setItem(CLOSE_KEY, closeDur); renderTimesOnly(); }
-        function saveInfoOnly() { const info = { title: document.getElementById('eventTitle').value, date: document.getElementById('eventDate').value, place: document.getElementById('eventPlace').value }; localStorage.setItem(INFO_KEY, JSON.stringify(info)); }
-        function saveAndRender() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); }
-
-        function initDragAndDrop() {
-            const tbody = document.getElementById('tableBody');
-            tbody.addEventListener('dragstart', (e) => { if(e.target.tagName==='TR') e.target.classList.add('dragging'); });
-            tbody.addEventListener('dragover', (e) => {
-                e.preventDefault(); const d = document.querySelector('.dragging'); if(!d) return;
-                const r = e.target.closest('tr'); if(r && r!==d && r.dataset.index){
-                    const b = r.getBoundingClientRect(); if(e.clientY - b.top > b.height/2) r.after(d); else r.before(d);
-                }
-            });
-            tbody.addEventListener('dragend', () => {
-                const rows = Array.from(tbody.querySelectorAll('tr[data-index]')); if(!rows.length) return;
-                const newData = rows.map(r => data[currentTab][parseInt(r.dataset.index)]);
-                if(currentTab === 'performance'){ data.performance = newData; } 
-                else { data.rehearsal = newData; data.performance = [...newData].reverse(); }
-                refreshAllNos(); saveAndRender();
-            });
+        /* ダークモード（暗い） */
+        body.dark-mode {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --input-bg: #334155;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+            --summary-bg: rgba(15, 23, 42, 0.95);
         }
 
-        function render() {
-            const body = document.getElementById('tableBody'); body.innerHTML = "";
-            if (currentTab === 'performance') {
-                body.innerHTML += `<tr class="system-row"><td class="col-time"><span class="time-start">${doorTime}</span></td><td class="col-no">-</td><td class="col-name"><span class="name-input">開場</span></td><td class="col-params"></td><td class="col-end-time"></td><td class="col-del"></td></tr>`;
-                data.performance.forEach((it, i) => {
-                    const no = (i === data.performance.length-1) ? "トリ" : (i+1);
-                    body.innerHTML += `<tr draggable="true" data-index="${i}"><td class="col-time"><span class="time-start" id="start-${i}">-</span></td><td class="col-no">${no}</td><td class="col-name"><input type="text" value="${it.name}" class="name-input" oninput="updateField(${i},'name',this.value)"></td><td class="col-params">持<input type="number" class="input-dark" value="${it.play}" oninput="updateField(${i},'play',this.value)">転<input type="number" class="input-dark" value="${it.change}" oninput="updateField(${i},'change',this.value)"></td><td class="col-end-time" id="end-${i}">-</td><td class="col-del"><button class="btn-del" onclick="deleteItem(${i})">×</button></td></tr>`;
-                });
-                body.innerHTML += `<tr class="system-row"><td class="col-time"><span class="time-start" id="start-close">-</span></td><td class="col-no">-</td><td class="col-name"><span class="name-input">終演</span></td><td class="col-params"><input type="number" class="input-dark" value="${closeDur}" oninput="updateCloseDur(this.value)">分</td><td class="col-end-time" id="end-close">-</td><td class="col-del"></td></tr>`;
-            } else {
-                body.innerHTML += `<tr class="system-row"><td class="col-time"><span class="time-start" id="start-staff">-</span></td><td class="col-no">-</td><td class="col-name"><span class="name-input">入り<span class="meta-text">～15分～</span></span></td><td class="col-params"></td><td class="col-end-time" id="end-staff">-</td><td class="col-del"></td></tr>`;
-                data.rehearsal.forEach((it, i) => {
-                    body.innerHTML += `<tr draggable="true" data-index="${i}"><td class="col-time"><span class="time-start" id="start-${i}">-</span></td><td class="col-no"><input type="text" value="${it.no||''}" style="width:100%; background:transparent; border:none; text-align:center; font-size:11px; font-weight:bold; color:var(--text-dim);" oninput="updateField(${i},'no',this.value)"></td><td class="col-name"><input type="text" value="${it.name}" class="name-input" oninput="updateField(${i},'name',this.value)"></td><td class="col-params">持<input type="number" class="input-dark" value="${it.play}" oninput="updateField(${i},'play',this.value)">転<input type="number" class="input-dark" value="${it.change}" oninput="updateField(${i},'change',this.value)"></td><td class="col-end-time" id="end-${i}">-</td><td class="col-del"><button class="btn-del" onclick="deleteItem(${i})">×</button></td></tr>`;
-                });
-                body.innerHTML += `<tr class="system-row"><td class="col-time"><span class="time-start" id="start-meeting">-</span></td><td class="col-no">-</td><td class="col-name"><span class="name-input">顔合わせ<span class="meta-text">～10分～</span></span></td><td class="col-params"></td><td class="col-end-time">${doorTime}</td><td class="col-del"></td></tr>`;
+        body {
+            font-family: -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 220px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container { max-width: 500px; margin: auto; }
+
+        header { 
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; 
+        }
+        h1 { font-size: 1.2rem; font-weight: 800; margin: 0; }
+
+        /* 切り替えボタン */
+        .theme-toggle {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h2 { font-size: 0.75rem; color: var(--accent); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .field { display: flex; flex-direction: column; }
+        label { font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; color: var(--text-sub); }
+        
+        input {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .band-card {
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; font-size: 1rem; width: 70%; padding: 5px 0; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+
+        .band-info { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: center; }
+        .badge-grid { display: flex; flex-direction: column; gap: 4px; }
+        .badge { font-size: 0.7rem; color: var(--text-sub); display: flex; justify-content: space-between; }
+        .badge strong { color: var(--text-main); }
+
+        .btn-add {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            color: var(--accent);
+            border: 2px dashed var(--accent);
+            border-radius: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .summary-fixed {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--summary-bg);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .summary-content { max-width: 500px; margin: auto; }
+        .sum-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-bottom: 4px; }
+        .sum-main { display: flex; justify-content: space-between; align-items: baseline; margin: 8px 0; }
+        .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); }
+
+        .split-box {
+            background: var(--card);
+            padding: 10px 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+        }
+        .ninzu { width: 40px; background: var(--input-bg); border: none; color: var(--accent); font-weight: bold; text-align: center; border-radius: 5px; padding: 2px; }
+        
+        .status { padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
+        .status-up { background: var(--success); color: white; }
+        .status-down { background: var(--danger); color: white; }
+
+        .m-plus { color: var(--success); font-weight: bold; }
+        .m-minus { color: var(--danger); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>取置算出表</h1>
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">モード切替</button>
+    </header>
+
+    <section>
+        <h2>設定</h2>
+        <div class="grid">
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" step="100" oninput="keisan()"></div>
+            <div class="field"><label>単価</label><input type="number" id="base-price" value="2000" step="100" oninput="keisan()"></div>
+            <div class="field"><label>バック開始数</label><input type="number" id="threshold" value="5" step="1" oninput="keisan()"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" step="10" min="0" oninput="keisan()"></div>
+        </div>
+    </section>
+
+    <section>
+        <h2>主催 / 制作</h2>
+        <div class="grid">
+            <div class="field"><label>主催取置</label><input type="number" id="org-count" value="0" step="1" oninput="keisan()"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" step="100" oninput="keisan()"></div>
+        </div>
+    </section>
+
+    <section style="background: transparent; padding: 0; border: none; box-shadow: none;">
+        <h2>出演者別</h2>
+        <div id="band-list"></div>
+        <button class="btn-add" onclick="addBand()">＋ 出演枠を追加</button>
+    </section>
+</div>
+
+<div class="summary-fixed">
+    <div class="summary-content">
+        <div class="sum-row">
+            <span>売上合計 ¥<span id="txt-sales">0</span></span>
+            <span>支払合計 ¥<span id="txt-back">0</span></span>
+        </div>
+        <div class="sum-main">
+            <div id="status-tag" class="status">計算中</div>
+            <div class="sum-total" id="net-profit">¥ 0</div>
+        </div>
+        <div class="split-box">
+            <span>共催者 <input type="number" id="split-num" value="3" min="1" class="ninzu" oninput="keisan()"> 名で折半</span>
+            <span id="per-person" class="m-plus">¥ 0</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let bandId = 0;
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    function addBand() {
+        bandId++;
+        const div = document.createElement('div');
+        div.className = 'band-card';
+        div.id = `band-${bandId}`;
+        div.innerHTML = `
+            <div class="band-head">
+                <input type="text" class="band-name" value="出演者 ${bandId}">
+                <button class="btn-del" onclick="removeBand(${bandId})">削除</button>
+            </div>
+            <div class="band-info">
+                <div class="field">
+                    <label>取置数</label>
+                    <input type="number" class="count" value="0" min="0" oninput="keisan()">
+                </div>
+                <div class="badge-grid">
+                    <div class="badge">小計: <strong>¥<span class="b-sales">0</span></strong></div>
+                    <div class="badge">バック: <strong style="color:var(--accent)">¥<span class="b-back">0</span></strong></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('band-list').appendChild(div);
+        keisan();
+    }
+
+    function removeBand(id) {
+        document.getElementById(`band-${id}`).remove();
+        keisan();
+    }
+
+    function keisan() {
+        const price = Math.round(parseFloat(document.getElementById('base-price').value)) || 0;
+        const hallFee = Math.round(parseFloat(document.getElementById('hall-fee').value)) || 0;
+        const orgCount = parseFloat(document.getElementById('org-count').value) || 0;
+        const orgCost = Math.round(parseFloat(document.getElementById('org-cost').value)) || 0;
+        const threshold = parseFloat(document.getElementById('threshold').value) || 0;
+        const percent = parseFloat(document.getElementById('percent').value) || 0;
+        const splitNum = parseInt(document.getElementById('split-num').value) || 1;
+
+        let totalSales = (orgCount * price);
+        let totalBack = 0;
+
+        document.querySelectorAll('.band-card').forEach(band => {
+            const count = parseFloat(band.querySelector('.count').value) || 0;
+            const kojinSales = count * price;
+            let back = 0;
+            if (count >= threshold && count > 0) {
+                const target = count - (threshold - 1);
+                if (target > 0) back = (target * price) * (percent / 100);
             }
-            renderTimesOnly(); initDragAndDrop();
+            const finalBack = Math.floor(back);
+            band.querySelector('.b-sales').innerText = kojinSales.toLocaleString();
+            band.querySelector('.b-back').innerText = finalBack.toLocaleString();
+            totalSales += kojinSales;
+            totalBack += finalBack;
+        });
+
+        const netProfit = totalSales - totalBack - (hallFee + orgCost);
+        const perPerson = Math.floor(netProfit / splitNum);
+
+        document.getElementById('txt-sales').innerText = totalSales.toLocaleString();
+        document.getElementById('txt-back').innerText = totalBack.toLocaleString();
+        document.getElementById('net-profit').innerText = `¥${netProfit.toLocaleString()}`;
+        
+        const statusTag = document.getElementById('status-tag');
+        const perPersonElem = document.getElementById('per-person');
+
+        if (netProfit >= 0) {
+            statusTag.innerText = "黒字収益";
+            statusTag.className = "status status-up";
+            perPersonElem.innerText = `分配: ¥${perPerson.toLocaleString()}`;
+            perPersonElem.className = "m-plus";
+        } else {
+            statusTag.innerText = "赤字不足";
+            statusTag.className = "status status-down";
+            perPersonElem.innerText = `負担: ¥${Math.abs(perPerson).toLocaleString()}`;
+            perPersonElem.className = "m-minus";
         }
+    }
 
-        function renderTimesOnly() {
-            let pCur = addMin(doorTime, 30); data.performance.forEach(it => { let e = addMin(pCur, it.play); pCur = addMin(e, it.change); });
-            let final = addMin(pCur, closeDur); 
-            document.getElementById('topCloseTimeDisplay').innerText = final;
+    for(let i=0; i<3; i++) addBand();
+</script>
 
-            let tr = 10; data.rehearsal.forEach((it, i) => tr += it.play + (i < data.rehearsal.length-1 ? it.change : 0));
-            let fs = addMin(doorTime, -tr);
-            let entryTime = addMin(fs, -15);
-            document.getElementById('staffEntryDisplay').innerText = entryTime;
-
-            if (currentTab === 'performance') {
-                let cur = addMin(doorTime, 30); data.performance.forEach((it, i) => { let e = addMin(cur, it.play); const sEl = document.getElementById(`start-${i}`); const eEl = document.getElementById(`end-${i}`); if(sEl) sEl.innerText = cur; if(eEl) eEl.innerText = e; cur = addMin(e, it.change); });
-                const sc = document.getElementById('start-close'); const ec = document.getElementById('end-close'); if(sc) sc.innerText = cur; if(ec) ec.innerText = final;
-            } else {
-                const ss = document.getElementById('start-staff'); const es = document.getElementById('end-staff'); if(ss) ss.innerText = entryTime; if(es) es.innerText = fs;
-                let cur = fs; data.rehearsal.forEach((it, i) => { let e = addMin(cur, it.play); const sEl = document.getElementById(`start-${i}`); const eEl = document.getElementById(`end-${i}`); if(sEl) sEl.innerText = cur; if(eEl) eEl.innerText = e; cur = addMin(e, it.change); });
-                const sm = document.getElementById('start-meeting'); if(sm) sm.innerText = cur;
-            }
-            let rT = 25; data.rehearsal.forEach(it => rT += it.play + it.change); let pT = 30 + closeDur; data.performance.forEach(it => pT += it.play + it.change);
-            const total = rT + pT; document.getElementById('totalUsageDisplay').innerText = `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
-            const limit = (limitH*60)+limitM; const diff = total-limit;
-            const sb = document.getElementById('statusBox'), dd = document.getElementById('diffDisplay');
-            if(diff > 0){ sb.classList.add('alert'); dd.innerText=String(Math.floor(diff/60)).padStart(2,'0')+':'+String(diff%60).padStart(2,'0'); }
-            else { sb.classList.remove('alert'); let rem = Math.abs(diff); dd.innerText=String(Math.floor(rem/60)).padStart(2,'0')+':'+String(rem%60).padStart(2,'0'); }
-        }
-
-        function addMin(t, m) { let [h, min] = t.split(':').map(Number); let d = new Date(); d.setHours(h, min + m); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
-        function applyBatch() { const p = parseInt(document.getElementById('batchPlay').value), c = parseInt(document.getElementById('batchChange').value); data[currentTab].forEach(it => { it.play=p; it.change=c; }); saveAndRender(); }
-        initSelects(); render();
-    </script>
 </body>
 </html>
