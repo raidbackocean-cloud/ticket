@@ -44,8 +44,8 @@
             touch-action: none; position: relative;
         }
         .wheel:active { background-color: var(--border); }
-        .wheel-guide { font-size: 0.5rem; color: var(--text-sub); opacity: 0.6; pointer-events: none; }
-        .val { font-size: 1.5rem; font-weight: 900; color: var(--accent); pointer-events: none; min-width: 40px; text-align: center; }
+        .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.5; pointer-events: none; font-weight: 800; letter-spacing: 0.05em; }
+        .val { font-size: 1.6rem; font-weight: 900; color: var(--accent); pointer-events: none; min-width: 45px; text-align: center; }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -87,8 +87,8 @@
     <section>
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" data-id="org_adv"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" data-id="org_door"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
+            <div class="field"><label>前売枚数</label><div class="wheel" data-id="org_adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" data-id="org_door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
         </div>
     </section>
 
@@ -109,11 +109,7 @@
 
 <script>
     let unreffort = 0;
-    // 【最重要】数値を完全にメモリ内で管理する
-    const DATA_STORE = {
-        org_adv: 0,
-        org_door: 0
-    };
+    const DATA_STORE = { org_adv: 0, org_door: 0 };
 
     function applyWheel(el) {
         let startX, startVal;
@@ -122,18 +118,16 @@
         const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
-            const clientX = e.touches ? e.touches.clientX : e.clientX;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             startX = clientX;
-            // 画面の文字を読まず、メモリ内の値を読み出す
             startVal = DATA_STORE[dataKey] || 0;
             
             const onMove = (me) => {
                 if (me.cancelable) me.preventDefault();
-                const currentX = me.touches ? me.touches.clientX : me.clientX;
+                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
-                // メモリと画面の両方を更新
                 DATA_STORE[dataKey] = newVal;
                 valSpan.textContent = newVal;
                 pixiemonster();
@@ -177,8 +171,8 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel" data-id="${advKey}"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
-                <div class="field"><label>当日</label><div class="wheel" data-id="${doorKey}"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
+                <div class="field"><label>前売</label><div class="wheel" data-id="${advKey}"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+                <div class="field"><label>当日</label><div class="wheel" data-id="${doorKey}"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
@@ -199,22 +193,17 @@
 
     function pixiemonster() {
         const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
-
         const base = {
             adv: getVal('base-price'), door: getVal('door-price'),
             hall: getVal('hall-fee'), cost: getVal('org-cost'),
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
-        // メモリ内の純粋な数値だけで計算
-        let shakaretsu = (DATA_STORE['org_adv'] || 0) * base.adv + 
-                         (DATA_STORE['org_door'] || 0) * base.door;
+        let shakaretsu = (DATA_STORE['org_adv'] || 0) * base.adv + (DATA_STORE['org_door'] || 0) * base.door;
         let nomore = 0;
 
         document.querySelectorAll('.band-card').forEach(card => {
-            const idMatch = card.id.match(/\d+/);
-            if (!idMatch) return;
-            const id = idMatch[0];
+            const id = card.id.replace('b-', '');
             const adv = DATA_STORE[`adv_${id}`] || 0;
             const door = DATA_STORE[`door_${id}`] || 0;
             const sales = (adv * base.adv) + (door * base.door);
@@ -246,7 +235,6 @@
         }
     }
 
-    // 初期化
     document.querySelectorAll('.wheel').forEach(applyWheel);
     for(let i=0; i<3; i++) nina();
 </script>
