@@ -75,12 +75,14 @@
     </header>
 
     <section>
-        <h2>設定</h2>
+        <h2>基本設定</h2>
         <div class="grid">
             <div class="field"><label>会場費</label><input type="number" id="hall-fee" class="std-input" value="50000" oninput="pixiemonster()"></div>
             <div class="field"><label>制作費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
             <div class="field"><label>前売単価</label><input type="number" id="base-price" class="std-input" value="2000" oninput="pixiemonster()"></div>
             <div class="field"><label>当日単価</label><input type="number" id="door-price" class="std-input" value="2500" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック開始数</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" class="std-input" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
 
@@ -118,13 +120,13 @@
         const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientX = e.touches ? e.touches.clientX : e.clientX;
             startX = clientX;
             startVal = DATA_STORE[dataKey] || 0;
             
             const onMove = (me) => {
                 if (me.cancelable) me.preventDefault();
-                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
+                const currentX = me.touches ? me.touches.clientX : me.clientX;
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
@@ -196,6 +198,7 @@
         const base = {
             adv: getVal('base-price'), door: getVal('door-price'),
             hall: getVal('hall-fee'), cost: getVal('org-cost'),
+            ths: getVal('threshold'), pct: getVal('percent'),
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
@@ -210,10 +213,10 @@
             
             let back = 0;
             const total = adv + door;
-            if (total >= 5) {
-                const target = total - 4;
+            if (total >= base.ths && total > 0) {
+                const target = total - (base.ths - 1);
                 const avg = sales / total;
-                back = Math.floor(target * avg * 0.5);
+                back = Math.floor(target * avg * (base.pct / 100));
             }
             card.querySelector('.txt-s').innerText = sales.toLocaleString();
             card.querySelector('.txt-b').innerText = back.toLocaleString();
