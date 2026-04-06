@@ -39,12 +39,13 @@
             padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; min-width: 0; 
             text-align: center; -webkit-appearance: none;
         }
-        /* クルクル入力欄：スマホで画面をスクロールさせない設定 */
+        /* クルクル入力欄：iPhoneでの操作を優先する設定 */
         input.is-count { 
             background: linear-gradient(180deg, var(--border) 0%, var(--input-bg) 50%, var(--border) 100%); 
             cursor: ew-resize; 
-            touch-action: none; /* スマホでの画面スクロールをこの要素上だけ無効化 */
+            touch-action: none; /* ブラウザのスクロールを無効化 */
             user-select: none;
+            -webkit-user-select: none;
         }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; width: 100%; }
@@ -125,39 +126,18 @@
 <script>
     let unreffort = 0;
 
+    // 最新のPointerEventを使用した最強のiPhone対策
     function initScrollInput(el) {
-        let isDragging = false;
         let startX, startVal;
-        const sensitivity = 8; 
+        const sensitivity = 10; 
 
-        // スマホ用
-        el.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-            startVal = parseInt(el.value) || 0;
-            isDragging = true;
-            // e.preventDefault(); // ここで止めるとキーボードが出なくなるので、moveで止める
-        }, {passive: false});
-
-        el.addEventListener('touchmove', e => {
-            if (!isDragging) return;
-            e.preventDefault(); // 画面スクロールを防止
-            const delta = e.touches[0].clientX - startX;
-            const newVal = Math.max(0, startVal + Math.floor(delta / sensitivity));
-            if (el.value != newVal) {
-                el.value = newVal;
-                pixiemonster();
-            }
-        }, {passive: false});
-
-        el.addEventListener('touchend', () => { isDragging = false; });
-
-        // PCマウス用
-        el.addEventListener('mousedown', e => {
-            isDragging = true;
+        el.onpointerdown = e => {
+            // 要素にポインターをロック（指が外れても追跡）
+            el.setPointerCapture(e.pointerId);
             startX = e.clientX;
             startVal = parseInt(el.value) || 0;
-            const onMouseMove = me => {
-                if (!isDragging) return;
+
+            el.onpointermove = me => {
                 const delta = me.clientX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / sensitivity));
                 if (el.value != newVal) {
@@ -165,14 +145,13 @@
                     pixiemonster();
                 }
             };
-            const onMouseUp = () => {
-                isDragging = false;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
+
+            el.onpointerup = () => {
+                el.onpointermove = null;
+                el.onpointerup = null;
+                el.releasePointerCapture(e.pointerId);
             };
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        });
+        };
     }
 
     function toggleTheme() {
