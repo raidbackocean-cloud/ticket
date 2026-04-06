@@ -17,12 +17,15 @@
             --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; overflow-x: hidden; position: fixed; width: 100%; height: 100%; }
+        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; overflow-x: hidden; position: fixed; width: 100%; height: 100%; }
         .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; }
         
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-left: 5px solid var(--accent); padding-left: 15px; }
         h1 { font-size: 1rem; margin: 0; }
-        .btn-reset { border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; background: transparent; }
+        .btn-reset { border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; border-radius: 20px; font-size: 0.6rem; cursor: pointer; background: transparent; }
+
+        /* 操作ガイド */
+        .guide { font-size: 0.65rem; color: var(--accent); background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px dashed var(--accent); }
 
         section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
@@ -31,13 +34,12 @@
         .field { display: flex; flex-direction: column; }
         label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
         
-        /* 数値入力（会場費など） */
         .std-input { 
             background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
             padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center;
         }
 
-        /* クルクル・ホイールエリア（タグではなくただの板） */
+        /* クルクル・ホイール（左右にアイコン追加） */
         .wheel {
             background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 100%);
             background-color: var(--input-bg);
@@ -46,18 +48,23 @@
             height: 48px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            padding: 0 10px;
             font-size: 1.4rem;
             font-weight: 900;
             color: var(--accent);
-            touch-action: none; /* iPhoneのスクロール・スワイプを完全に殺す */
+            touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            transition: transform 0.1s, box-shadow 0.1s;
         }
+        .wheel:active { transform: scale(0.98); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .wheel span { pointer-events: none; }
+        .wheel-icon { font-size: 0.6rem; opacity: 0.3; color: var(--text-main); }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; border-radius: 0; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; }
         
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -70,7 +77,7 @@
         .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); }
         .status { padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; color: #fff; }
         .status-up { background: var(--success); } .status-down { background: var(--danger); }
-        .per-box { background: var(--card); padding: 8px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 0.8rem; }
+        .per-box { background: var(--card); padding: 8px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -80,6 +87,10 @@
         <h1>取置算出表 Pro</h1>
         <button class="btn-reset" onclick="location.reload()">全リセット</button>
     </header>
+
+    <div class="guide">
+        💡 枚数欄を指で左右にスライドすると、数値を調整できます
+    </div>
 
     <section>
         <h2>設定</h2>
@@ -92,10 +103,10 @@
     </section>
 
     <section>
-        <h2>主催売上（なぞって変更）</h2>
+        <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" id="org-count">0</div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" id="org-door">0</div></div>
+            <div class="field"><label>前売枚数</label><div class="wheel" id="org-count"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" id="org-door"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
         </div>
     </section>
 
@@ -109,7 +120,7 @@
         <div class="sum-total" id="net-profit">¥ 0</div>
     </div>
     <div class="per-box">
-        <span>折半：<input type="number" id="split-num" value="3" style="width:30px; background:none; border:none; color:var(--accent); font-weight:bold; text-align:center;" oninput="pixiemonster()">名</span>
+        <span>折半人数：<input type="number" id="split-num" value="3" style="width:40px; background:var(--input-bg); border:1px solid var(--border); color:var(--accent); font-weight:bold; text-align:center; border-radius:4px;" oninput="pixiemonster()">名</span>
         <span id="per-person" style="font-weight:bold;">¥ 0</span>
     </div>
 </div>
@@ -117,31 +128,29 @@
 <script>
     let unreffort = 0;
 
-    // iPhoneで絶対に動くクルクル（ホイール）処理
     function applyWheel(el) {
         let startX, startVal;
-        const step = 10; // 指を10px動かすたびに1増減
+        const step = 10;
+        const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientX = e.touches ? e.touches.clientX : e.clientX;
             startX = clientX;
-            startVal = parseInt(el.innerText) || 0;
-            el.style.backgroundColor = "var(--border)";
+            startVal = parseInt(valSpan.innerText) || 0;
             
             const onMove = (me) => {
-                me.preventDefault(); // iPhoneのスクロールを完全に止める
-                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
+                me.preventDefault();
+                const currentX = me.touches ? me.touches.clientX : me.clientX;
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
-                if (el.innerText != newVal) {
-                    el.innerText = newVal;
+                if (valSpan.innerText != newVal) {
+                    valSpan.innerText = newVal;
                     pixiemonster();
                 }
             };
 
             const onUp = () => {
-                el.style.backgroundColor = "var(--input-bg)";
                 window.removeEventListener('touchmove', onMove);
                 window.removeEventListener('touchend', onUp);
                 window.removeEventListener('mousemove', onMove);
@@ -169,8 +178,8 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel b-adv">0</div></div>
-                <div class="field"><label>当日</label><div class="wheel b-door">0</div></div>
+                <div class="field"><label>前売</label><div class="wheel b-adv"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
+                <div class="field"><label>当日</label><div class="wheel b-door"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
@@ -196,16 +205,15 @@
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
-        let shakaretsu = (parseInt(document.getElementById('org-count').innerText) || 0) * base.adv + 
-                         (parseInt(document.getElementById('org-door').innerText) || 0) * base.door;
+        let shakaretsu = (parseInt(document.getElementById('org-count').querySelector('.val').innerText) || 0) * base.adv + 
+                         (parseInt(document.getElementById('org-door').querySelector('.val').innerText) || 0) * base.door;
         let nomore = 0;
 
         document.querySelectorAll('.band-card').forEach(card => {
-            const adv = parseInt(card.querySelector('.b-adv').innerText) || 0;
-            const door = parseInt(card.querySelector('.b-door').innerText) || 0;
+            const adv = parseInt(card.querySelector('.b-adv .val').innerText) || 0;
+            const door = parseInt(card.querySelector('.b-door .val').innerText) || 0;
             const sales = (adv * base.adv) + (door * base.door);
             
-            // バック計算 (しきい値5, 50%固定として簡易化)
             let back = 0;
             const total = adv + door;
             if (total >= 5) {
