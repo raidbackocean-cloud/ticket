@@ -17,36 +17,23 @@
             --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { 
-            background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; 
-            overflow: hidden; position: fixed; width: 100%; height: 100%; touch-action: none; 
-            -webkit-user-select: none; user-select: none;
-        }
+        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; overflow: hidden; position: fixed; width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; user-select: none; }
         .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
-        
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 15px; }
         h1 { font-size: 1rem; margin: 0; }
         .head-btns { display: flex; gap: 8px; }
         .btn-ui { border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; background: var(--input-bg); font-weight: bold; }
         .btn-reset { border-color: var(--danger); color: var(--danger); background: transparent; }
-
         section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .field { display: flex; flex-direction: column; }
         label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
         .std-input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center; -webkit-user-select: text; user-select: text; }
-
-        .wheel {
-            background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), var(--input-bg);
-            border: 1px solid var(--border); border-radius: 8px; height: 54px;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
-            touch-action: none; position: relative;
-        }
+        .wheel { background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), var(--input-bg); border: 1px solid var(--border); border-radius: 8px; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; touch-action: none; position: relative; }
         .wheel:active { background-color: var(--border); }
         .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.5; pointer-events: none; font-weight: 800; }
         .val { font-size: 1.6rem; font-weight: 900; color: var(--accent); pointer-events: none; min-width: 45px; text-align: center; }
-
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; border-radius: 0; -webkit-user-select: text; user-select: text; }
@@ -54,7 +41,6 @@
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; font-size: 0.65rem; }
         .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
-        
         .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 15px; z-index: 1000; }
         .sum-main { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
         .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); }
@@ -64,7 +50,6 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <header>
         <h1>取置算出表</h1>
@@ -73,7 +58,6 @@
             <button class="btn-ui" onclick="toggleTheme()" id="theme-btn">ライト</button>
         </div>
     </header>
-
     <section id="config">
         <h2>基本設定</h2>
         <div class="grid">
@@ -85,19 +69,13 @@
             <div class="field"><label>バック率(%)</label><input type="number" id="percent" class="std-input" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
-
-    <section id="org-section">
+    <section>
         <h2>主催売上</h2>
-        <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" id="w-org-adv" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" id="w-org-door" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-        </div>
+        <div class="grid" id="org-area"></div>
     </section>
-
     <div id="band-list"></div>
     <button class="btn-add" onclick="nina()">＋ 出演枠を追加</button>
 </div>
-
 <div class="summary-fixed">
     <div class="sum-main">
         <div id="status-tag" class="status">-</div>
@@ -110,43 +88,42 @@
 </div>
 
 <script>
-    // 徹底して「画面の文字」を計算に使わない
-    function applyWheel(el) {
+    // 【究極の対策】ブラウザのHTMLを信用せず、この変数の中身だけで全てを完結させる
+    let state = {
+        org: { adv: 0, door: 0 },
+        bands: []
+    };
+
+    function createWheelHTML(label, initialVal) {
+        return `<div class="field"><label>${label}</label><div class="wheel"><span class="wheel-guide">◀ SLIDE</span><span class="val">${initialVal}</span><span class="wheel-guide">SLIDE ▶</span></div></div>`;
+    }
+
+    function attachWheelLogic(el, dataObj, key) {
         let startX, startVal;
         const step = 10;
         const valSpan = el.querySelector('.val');
-
         const onDown = (e) => {
-            const clientX = e.touches ? e.touches.clientX : e.clientX;
-            startX = clientX;
-            // 重要：データ属性(data-val)から純粋な数字を取り出す
-            startVal = parseInt(el.getAttribute('data-val')) || 0;
-            
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            startVal = dataObj[key];
             const onMove = (me) => {
-                if (me.cancelable) me.preventDefault();
-                const currentX = me.touches ? me.touches.clientX : me.clientX;
+                me.preventDefault();
+                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
                 const delta = currentX - startX;
-                const newVal = Math.max(0, startVal + Math.floor(delta / step));
-                
-                // 数値を更新（表示とデータ属性の両方）
-                el.setAttribute('data-val', newVal);
-                valSpan.textContent = newVal;
+                dataObj[key] = Math.max(0, startVal + Math.floor(delta / step));
+                valSpan.textContent = dataObj[key];
                 pixiemonster();
             };
-
             const onUp = () => {
                 window.removeEventListener('touchmove', onMove);
                 window.removeEventListener('touchend', onUp);
                 window.removeEventListener('mousemove', onMove);
                 window.removeEventListener('mouseup', onUp);
             };
-
             window.addEventListener('touchmove', onMove, { passive: false });
             window.addEventListener('touchend', onUp);
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onUp);
         };
-
         el.addEventListener('touchstart', onDown, { passive: false });
         el.addEventListener('mousedown', onDown);
     }
@@ -157,89 +134,80 @@
     }
 
     function nina() {
-        const div = document.createElement('div');
-        div.className = 'band-card';
-        div.innerHTML = `
-            <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者">
-                <button class="btn-del">削除</button>
-            </div>
-            <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel w-adv" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-                <div class="field"><label>当日</label><div class="wheel w-door" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-            </div>
-            <div class="band-footer">
-                <span>小計: ¥<span class="txt-s">0</span></span>
-                <span style="color:var(--accent)">バック: ¥<span class="txt-b">0</span></span>
-            </div>
-        `;
+        const band = { name: "", adv: 0, door: 0, id: Date.now() + Math.random() };
+        state.bands.push(band);
+        renderBands();
+    }
 
-        div.querySelector('.btn-del').onclick = () => {
-            div.remove();
-            pixiemonster();
-        };
-
-        div.querySelectorAll('.wheel').forEach(applyWheel);
-        document.getElementById('band-list').appendChild(div);
+    function renderBands() {
+        const list = document.getElementById('band-list');
+        list.innerHTML = "";
+        state.bands.forEach((band, idx) => {
+            const div = document.createElement('div');
+            div.className = 'band-card';
+            div.innerHTML = `
+                <div class="band-head">
+                    <input type="text" class="band-name" value="${band.name}" placeholder="出演者 ${idx+1}" oninput="state.bands[${idx}].name=this.value">
+                    <button class="btn-del" onclick="state.bands.splice(${idx},1);renderBands();pixiemonster();">削除</button>
+                </div>
+                <div class="band-row">
+                    ${createWheelHTML('前売', band.adv)}
+                    ${createWheelHTML('当日', band.door)}
+                </div>
+                <div class="band-footer">
+                    <span>小計: ¥<span class="txt-s">0</span></span>
+                    <span style="color:var(--accent)">バック: ¥<span class="txt-b">0</span></span>
+                </div>`;
+            list.appendChild(div);
+            const wheels = div.querySelectorAll('.wheel');
+            attachWheelLogic(wheels[0], band, 'adv');
+            attachWheelLogic(wheels[1], band, 'door');
+        });
         pixiemonster();
     }
 
     function pixiemonster() {
-        const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
-        const getW = (el) => parseInt(el.getAttribute('data-val')) || 0;
-
-        const base = {
-            adv: getV('base-price'), door: getV('door-price'),
-            hall: getV('hall-fee'), cost: getV('org-cost'),
-            ths: getV('threshold'), pct: getV('percent'),
-            spl: Math.max(1, parseInt(document.getElementById('split-num').value) || 1)
-        };
-
-        // 主催売上
-        let totalS = (getW(document.getElementById('w-org-adv')) * base.adv) + 
-                     (getW(document.getElementById('w-org-door')) * base.door);
+        const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const config = { adv:v('base-price'), door:v('door-price'), hall:v('hall-fee'), cost:v('org-cost'), ths:v('threshold'), pct:v('percent'), spl:Math.max(1,parseInt(document.getElementById('split-num').value)||1) };
+        
+        let totalS = (state.org.adv * config.adv) + (state.org.door * config.door);
         let totalB = 0;
+        const cards = document.querySelectorAll('.band-card');
 
-        // 出演者計算（画面に存在するカードを直接ループして計算）
-        document.querySelectorAll('.band-card').forEach(card => {
-            const adv = getW(card.querySelector('.w-adv'));
-            const door = getW(card.querySelector('.w-door'));
-            const sales = (adv * base.adv) + (door * base.door);
-            
-            let back = 0;
-            const totalCount = adv + door;
-            if (totalCount >= base.ths && totalCount > 0) {
-                const target = totalCount - (base.ths - 1);
-                const avgPrice = sales / totalCount;
-                back = Math.floor(target * avgPrice * (base.pct / 100));
+        state.bands.forEach((band, i) => {
+            const s = (band.adv * config.adv) + (band.door * config.door);
+            let b = 0;
+            const total = band.adv + band.door;
+            if (total >= config.ths && total > 0) {
+                b = Math.floor((total - (config.ths - 1)) * (s / total) * (config.pct / 100));
             }
-
-            card.querySelector('.txt-s').innerText = (sales || 0).toLocaleString();
-            card.querySelector('.txt-b').innerText = (back || 0).toLocaleString();
-            totalS += sales;
-            totalB += back;
+            if(cards[i]) {
+                cards[i].querySelector('.txt-s').textContent = s.toLocaleString();
+                cards[i].querySelector('.txt-b').textContent = b.toLocaleString();
+            }
+            totalS += s; totalB += b;
         });
 
-        const profit = totalS - totalB - (base.hall + base.cost);
-        const per = Math.floor(profit / base.spl);
-
-        document.getElementById('net-profit').innerText = `¥${(profit || 0).toLocaleString()}`;
+        const profit = totalS - totalB - (config.hall + config.cost);
+        document.getElementById('net-profit').textContent = `¥${profit.toLocaleString()}`;
         const tag = document.getElementById('status-tag');
         const pElem = document.getElementById('per-person');
-
         if (profit >= 0) {
             tag.innerText = "黒字収益"; tag.className = "status status-up";
-            pElem.innerText = `分配：¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
+            pElem.innerText = `分配：¥${Math.floor(profit/config.spl).toLocaleString()}`; pElem.style.color = "var(--success)";
         } else {
             tag.innerText = "赤字不足"; tag.className = "status status-down";
-            pElem.innerText = `負担：¥${Math.abs(per).toLocaleString()}`; pElem.style.color = "var(--danger)";
+            pElem.innerText = `負担：¥${Math.abs(Math.floor(profit/config.spl)).toLocaleString()}`; pElem.style.color = "var(--danger)";
         }
     }
 
-    // 主催の初期化
-    document.querySelectorAll('#org-section .wheel').forEach(applyWheel);
+    // 主催エリア初期化
+    const orgArea = document.getElementById('org-area');
+    orgArea.innerHTML = createWheelHTML('前売枚数', 0) + createWheelHTML('当日枚数', 0);
+    const orgWheels = orgArea.querySelectorAll('.wheel');
+    attachWheelLogic(orgWheels[0], state.org, 'adv');
+    attachWheelLogic(orgWheels[1], state.org, 'door');
 
-    // 初期バンド
     for(let i=0; i<3; i++) nina();
 </script>
 </body>
