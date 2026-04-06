@@ -17,55 +17,39 @@
             --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        /* iPhoneの「戻る」や「スクロール」を完全に封じ込める設定 */
         body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; overflow: hidden; position: fixed; width: 100%; height: 100%; touch-action: none; }
         .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 15px; }
         h1 { font-size: 1rem; margin: 0; }
-        .btn-reset { border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; border-radius: 20px; font-size: 0.6rem; cursor: pointer; background: transparent; }
+        .head-btns { display: flex; gap: 8px; }
+        .btn-ui { border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; background: var(--input-bg); font-weight: bold; }
+        .btn-reset { border-color: var(--danger); color: var(--danger); background: transparent; }
 
         section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
-        
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .field { display: flex; flex-direction: column; }
         label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
-        
-        .std-input { 
-            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
-            padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center;
-        }
+        .std-input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center; }
 
-        /* ホイールエリア */
+        /* クルクルUIの完成形 */
         .wheel {
-            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 100%);
-            background-color: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 8px;
-            touch-action: none; /* ここが重要：スワイプ入力を独占する */
-            user-select: none;
-            -webkit-user-select: none;
-            position: relative;
+            background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.1) 100%), var(--input-bg);
+            border: 1px solid var(--border); border-radius: 8px; height: 54px;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
+            touch-action: none; user-select: none; -webkit-user-select: none; position: relative;
         }
         .wheel:active { background-color: var(--border); }
-        
-        .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.5; font-weight: bold; pointer-events: none; }
-        .val { font-size: 1.4rem; font-weight: 900; color: var(--accent); pointer-events: none; }
+        .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.6; pointer-events: none; }
+        .val { font-size: 1.5rem; font-weight: 900; color: var(--accent); pointer-events: none; width: 40px; text-align: center; }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; border-radius: 0; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; }
-        
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; font-size: 0.65rem; }
-        
         .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
         
         .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 15px; z-index: 1000; }
@@ -80,8 +64,11 @@
 
 <div class="container">
     <header>
-        <h1>取置算出表 Pro</h1>
-        <button class="btn-reset" onclick="location.reload()">リセット</button>
+        <h1>取置算出表</h1>
+        <div class="head-btns">
+            <button class="btn-ui btn-reset" onclick="location.reload()">リセット</button>
+            <button class="btn-ui" onclick="toggleTheme()" id="theme-btn">ライト</button>
+        </div>
     </header>
 
     <section>
@@ -97,20 +84,8 @@
     <section>
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label>
-                <div class="wheel" id="org-count">
-                    <span class="wheel-guide">◀ なぞる</span>
-                    <span class="val">0</span>
-                    <span class="wheel-guide">なぞる ▶</span>
-                </div>
-            </div>
-            <div class="field"><label>当日枚数</label>
-                <div class="wheel" id="org-door">
-                    <span class="wheel-guide">◀ なぞる</span>
-                    <span class="val">0</span>
-                    <span class="wheel-guide">なぞる ▶</span>
-                </div>
-            </div>
+            <div class="field"><label>前売枚数</label><div class="wheel" id="org-count-w"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" id="org-door-w"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
         </div>
     </section>
 
@@ -132,25 +107,26 @@
 <script>
     let unreffort = 0;
 
+    // iPhoneでNaNを絶対に出さないスワイプ処理
     function applyWheel(el) {
         let startX, startVal;
-        const step = 12; // 指の動きに対する感度
+        const step = 10;
         const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientX = e.touches ? e.touches.clientX : e.clientX;
             startX = clientX;
-            // NaN対策：現在の値を確実に数値として取得
-            startVal = parseInt(valSpan.innerText.replace(/[^0-9]/g, "")) || 0;
+            // spanの中身（数字のみ）を確実に取得
+            startVal = parseInt(valSpan.textContent) || 0;
             
             const onMove = (me) => {
                 if (me.cancelable) me.preventDefault();
-                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
+                const currentX = me.touches ? me.touches.clientX : me.clientX;
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
-                if (valSpan.innerText != newVal) {
-                    valSpan.innerText = newVal;
+                if (valSpan.textContent != newVal) {
+                    valSpan.textContent = newVal;
                     pixiemonster();
                 }
             };
@@ -172,6 +148,11 @@
         el.addEventListener('mousedown', onDown);
     }
 
+    function toggleTheme() {
+        document.body.classList.toggle('light-mode');
+        document.getElementById('theme-btn').innerText = document.body.classList.contains('light-mode') ? 'ダーク' : 'ライト';
+    }
+
     function nina() {
         unreffort++;
         const div = document.createElement('div');
@@ -183,8 +164,8 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel b-adv"><span class="wheel-guide">◀</span><span class="val">0</span><span class="wheel-guide">▶</span></div></div>
-                <div class="field"><label>当日</label><div class="wheel b-door"><span class="wheel-guide">◀</span><span class="val">0</span><span class="wheel-guide">▶</span></div></div>
+                <div class="field"><label>前売</label><div class="wheel b-adv-w"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
+                <div class="field"><label>当日</label><div class="wheel b-door-w"><span class="wheel-guide">◀ なぞる</span><span class="val">0</span><span class="wheel-guide">なぞる ▶</span></div></div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
@@ -203,23 +184,21 @@
 
     function pixiemonster() {
         const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
-        const getWheelVal = (el) => parseInt(el.innerText.replace(/[^0-9]/g, "")) || 0;
+        const getWVal = (parent) => parseInt(parent.querySelector('.val').textContent) || 0;
 
         const base = {
-            adv: getVal('base-price'),
-            door: getVal('door-price'),
-            hall: getVal('hall-fee'),
-            cost: getVal('org-cost'),
+            adv: getVal('base-price'), door: getVal('door-price'),
+            hall: getVal('hall-fee'), cost: getVal('org-cost'),
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
-        let shakaretsu = getWheelVal(document.getElementById('org-count').querySelector('.val')) * base.adv + 
-                         getWheelVal(document.getElementById('org-door').querySelector('.val')) * base.door;
+        let shakaretsu = getWVal(document.getElementById('org-count-w')) * base.adv + 
+                         getWVal(document.getElementById('org-door-w')) * base.door;
         let nomore = 0;
 
         document.querySelectorAll('.band-card').forEach(card => {
-            const adv = getWheelVal(card.querySelector('.b-adv .val'));
-            const door = getWheelVal(card.querySelector('.b-door .val'));
+            const adv = getWVal(card.querySelector('.b-adv-w'));
+            const door = getWVal(card.querySelector('.b-door-w'));
             const sales = (adv * base.adv) + (door * base.door);
             
             let back = 0;
@@ -229,7 +208,6 @@
                 const avg = sales / total;
                 back = Math.floor(target * avg * 0.5);
             }
-            
             card.querySelector('.txt-s').innerText = sales.toLocaleString();
             card.querySelector('.txt-b').innerText = back.toLocaleString();
             shakaretsu += sales; nomore += back;
@@ -237,7 +215,6 @@
 
         const MercyWoodpecker = shakaretsu - nomore - (base.hall + base.cost);
         const per = Math.floor(MercyWoodpecker / base.spl);
-
         document.getElementById('net-profit').innerText = `¥${MercyWoodpecker.toLocaleString()}`;
         const tag = document.getElementById('status-tag');
         const pElem = document.getElementById('per-person');
