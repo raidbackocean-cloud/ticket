@@ -19,28 +19,25 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
         body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; -webkit-text-size-adjust: 100%; }
         .container { max-width: 500px; margin: auto; width: 100%; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
-        h1 { font-size: 1.1rem; margin: 0; }
-        .theme-toggle { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; }
         
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
+        h1 { font-size: 1rem; margin: 0; flex-grow: 1; }
+        .head-btns { display: flex; gap: 8px; }
+        .theme-toggle, .btn-reset { border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; font-weight: bold; }
+        .theme-toggle { background: var(--input-bg); }
+        .btn-reset { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+
         section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); width: 100%; }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
         
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
-        .field { display: flex; flex-direction: column; min-width: 0; } /* min-width: 0 が重要 */
-        label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .field { display: flex; flex-direction: column; min-width: 0; }
+        label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
         
         input { 
-            background: var(--input-bg); 
-            border: 1px solid var(--border); 
-            color: var(--text-main); 
-            padding: 10px; 
-            border-radius: 8px; 
-            font-size: 1rem; /* iPhoneでズームしない最小サイズ */
-            outline: none; 
-            width: 100%; 
-            min-width: 0; 
-            -webkit-appearance: none; /* iPhoneのデフォルトスタイル除去 */
+            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
+            padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; min-width: 0; 
+            -webkit-appearance: none;
         }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; width: 100%; }
@@ -49,8 +46,8 @@
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
         
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; width: 100%; }
-        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; gap: 5px; }
-        .badge { font-size: 0.65rem; color: var(--text-sub); white-space: nowrap; }
+        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; }
+        .badge { font-size: 0.65rem; color: var(--text-sub); }
         .badge strong { color: var(--accent); }
         
         .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
@@ -70,27 +67,30 @@
 
 <div class="container">
     <header>
-        <h1>取置算出表 Pro</h1>
-        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">ライトモードへ</button>
+        <h1>取置算出表</h1>
+        <div class="head-btns">
+            <button class="btn-reset" onclick="hardReset()">リセット</button>
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">ライト</button>
+        </div>
     </header>
 
     <section>
         <h2>基本設定</h2>
         <div class="grid">
-            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="pixiemonster()"></div>
-            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="pixiemonster()"></div>
-            <div class="field"><label>前売単価</label><input type="number" id="base-price" value="2000" oninput="pixiemonster()"></div>
-            <div class="field"><label>当日単価</label><input type="number" id="door-price" value="2500" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック開始数</label><input type="number" id="threshold" value="5" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="pixiemonster()"></div>
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>前売単価</label><input type="number" id="base-price" value="2000" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>当日単価</label><input type="number" id="door-price" value="2500" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>バック開始</label><input type="number" id="threshold" value="5" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="pixiemonster()" autocomplete="off"></div>
         </div>
     </section>
 
     <section>
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>主催前売</label><input type="number" id="org-count" value="0" oninput="pixiemonster()"></div>
-            <div class="field"><label>主催当日</label><input type="number" id="org-door" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>主催前売</label><input type="number" id="org-count" value="0" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>主催当日</label><input type="number" id="org-door" value="0" oninput="pixiemonster()" autocomplete="off"></div>
         </div>
     </section>
 
@@ -109,7 +109,7 @@
             <div class="sum-total" id="net-profit">¥ 0</div>
         </div>
         <div class="split-box">
-            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="pixiemonster()"> 名で折半</span>
+            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="pixiemonster()" autocomplete="off"> 名で折半</span>
             <span id="per-person">¥ 0</span>
         </div>
     </div>
@@ -120,7 +120,30 @@
 
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
-        document.getElementById('theme-btn').innerText = document.body.classList.contains('light-mode') ? 'ダークモードへ' : 'ライトモードへ';
+        document.getElementById('theme-btn').innerText = document.body.classList.contains('light-mode') ? 'ダーク' : 'ライト';
+    }
+
+    // 全リセット機能
+    function hardReset() {
+        if(!confirm("すべての入力をリセットしますか？")) return;
+        
+        // 基本設定のリセット
+        document.getElementById('hall-fee').value = 50000;
+        document.getElementById('org-cost').value = 0;
+        document.getElementById('base-price').value = 2000;
+        document.getElementById('door-price').value = 2500;
+        document.getElementById('threshold').value = 5;
+        document.getElementById('percent').value = 50;
+        document.getElementById('org-count').value = 0;
+        document.getElementById('org-door').value = 0;
+        document.getElementById('split-num').value = 3;
+
+        // 出演者リストを空にして再作成
+        document.getElementById('band-list').innerHTML = "";
+        unreffort = 0;
+        for(let i=0; i<3; i++) nina();
+        
+        pixiemonster();
     }
 
     function nina() {
@@ -130,12 +153,12 @@
         div.id = `b-${unreffort}`;
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者 ${unreffort}">
+                <input type="text" class="band-name" placeholder="出演者 ${unreffort}" autocomplete="off">
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売枚数</label><input type="number" class="c-adv" value="0" oninput="pixiemonster()"></div>
-                <div class="field"><label>当日枚数</label><input type="number" class="c-door" value="0" oninput="pixiemonster()"></div>
+                <div class="field"><label>前売枚数</label><input type="number" class="c-adv" value="0" oninput="pixiemonster()" autocomplete="off"></div>
+                <div class="field"><label>当日枚数</label><input type="number" class="c-door" value="0" oninput="pixiemonster()" autocomplete="off"></div>
             </div>
             <div class="band-footer">
                 <div class="badge">小計: <strong>¥<span class="b-s">0</span></strong></div>
