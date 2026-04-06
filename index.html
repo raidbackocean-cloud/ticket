@@ -5,332 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>取置算出表 Pro</title>
     <style>
-        /* デフォルト：ダークモード */
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --input-bg: #334155;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --accent: #38bdf8;
-            --success: #10b981;
-            --danger: #ef4444;
-            --border: #334155;
+            --bg: #0f172a; --card: #1e293b; --input-bg: #334155;
+            --text-main: #f8fafc; --text-sub: #94a3b8; --accent: #38bdf8;
+            --success: #10b981; --danger: #ef4444; --border: #334155;
             --summary-bg: rgba(15, 23, 42, 0.95);
         }
-
-        /* ライトモード */
         body.light-mode {
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --input-bg: #f1f5f9;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-            --accent: #0284c7;
-            --border: #e2e8f0;
-            --summary-bg: rgba(255, 255, 255, 0.9);
+            --bg: #f8fafc; --card: #ffffff; --input-bg: #f1f5f9;
+            --text-main: #1e293b; --text-sub: #64748b; --accent: #0284c7;
+            --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
-
-        * {
-            box-sizing: border-box; /* 枠外への突き出し防止 */
-        }
-
-        body {
-            font-family: -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 15px;
-            padding-bottom: 220px;
-            transition: background 0.3s, color 0.3s;
-        }
-
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; }
         .container { max-width: 500px; margin: auto; }
-
-        header { 
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; 
-        }
-        h1 { font-size: 1.2rem; font-weight: 800; margin: 0; }
-
-        .theme-toggle {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-            min-width: 110px;
-        }
-
-        section {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        h2 { font-size: 0.75rem; color: var(--accent); margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* グリッドレイアウトのレスポンシブ対応 */
-        .grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 12px; 
-        }
-        
-        /* 画面が狭いときは1カラムにする */
-        @media (max-width: 380px) {
-            .grid { grid-template-columns: 1fr; }
-        }
-
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
+        h1 { font-size: 1.1rem; margin: 0; }
+        .theme-toggle { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; }
+        section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
+        h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .field { display: flex; flex-direction: column; }
-        label { font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; color: var(--text-sub); }
-        
-        input {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 1rem;
-            outline: none;
-            width: 100%; /* 親要素に収める */
-        }
-
-        input::placeholder {
-            color: var(--text-sub);
-            opacity: 0.6;
-        }
-
-        .band-card {
-            background: var(--input-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-        }
-
-        .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        
-        .band-name { 
-            background: transparent; 
-            border: none; 
-            border-bottom: 1px solid var(--border); 
-            color: var(--text-main); 
-            font-weight: bold; 
-            font-size: 1rem; 
-            width: 70%; 
-            padding: 5px 0; 
-            border-radius: 0;
-        }
-
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
-
-        .band-info { display: grid; grid-template-columns: 80px 1fr; gap: 15px; align-items: center; }
-        .badge-grid { display: flex; flex-direction: column; gap: 4px; }
-        .badge { font-size: 0.7rem; color: var(--text-sub); display: flex; justify-content: space-between; }
-        .badge strong { color: var(--text-main); }
-
-        .btn-add {
-            width: 100%;
-            padding: 15px;
-            background: transparent;
-            color: var(--accent);
-            border: 2px dashed var(--accent);
-            border-radius: 12px;
-            font-weight: bold;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-
-        .summary-fixed {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: var(--summary-bg);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid var(--border);
-            padding: 20px;
-            z-index: 100;
-        }
-
+        label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
+        input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
+        .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; }
+        .badge { font-size: 0.7rem; color: var(--text-sub); }
+        .badge strong { color: var(--accent); }
+        .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(8px); border-top: 1px solid var(--border); padding: 15px; z-index: 100; }
         .summary-content { max-width: 500px; margin: auto; }
-        .sum-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-bottom: 4px; }
-        .sum-main { display: flex; justify-content: space-between; align-items: baseline; margin: 8px 0; }
-        .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); }
-
-        .split-box {
-            background: var(--card);
-            padding: 10px 15px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            border: 1px solid var(--border);
-        }
-        .ninzu { width: 40px; background: var(--input-bg); border: none; color: var(--accent); font-weight: bold; text-align: center; border-radius: 5px; padding: 2px; }
-        
-        .status { padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
-        .status-up { background: var(--success); color: white; }
-        .status-down { background: var(--danger); color: white; }
-
-        .m-plus { color: var(--success); font-weight: bold; }
-        .m-minus { color: var(--danger); font-weight: bold; }
+        .sum-row { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-sub); margin-bottom: 5px; }
+        .sum-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .sum-total { font-size: 1.6rem; font-weight: 900; }
+        .split-box { background: var(--card); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; border: 1px solid var(--border); }
+        .ninzu { width: 35px; background: var(--input-bg); border: none; color: var(--accent); font-weight: bold; text-align: center; border-radius: 4px; }
+        .status { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; color: #fff; }
+        .status-up { background: var(--success); } .status-down { background: var(--danger); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>取置算出表</h1>
+        <h1>取置算出表 Pro</h1>
         <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">ライトモードへ</button>
     </header>
 
     <section>
-        <h2>設定</h2>
+        <h2>基本設定</h2>
         <div class="grid">
-            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" step="100" oninput="keisan()"></div>
-            <div class="field"><label>単価</label><input type="number" id="base-price" value="2000" step="100" oninput="keisan()"></div>
-            <div class="field"><label>バック開始数</label><input type="number" id="threshold" value="5" step="1" oninput="keisan()"></div>
-            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" step="10" min="0" oninput="keisan()"></div>
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="pixiemonster()"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>前売単価</label><input type="number" id="base-price" value="2000" oninput="pixiemonster()"></div>
+            <div class="field"><label>当日単価</label><input type="number" id="door-price" value="2500" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック開始数</label><input type="number" id="threshold" value="5" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
 
     <section>
-        <h2>主催 / 制作</h2>
+        <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>主催取置</label><input type="number" id="org-count" value="0" step="1" oninput="keisan()"></div>
-            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" step="100" oninput="keisan()"></div>
+            <div class="field"><label>主催前売</label><input type="number" id="org-count" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>主催当日</label><input type="number" id="org-door" value="0" oninput="pixiemonster()"></div>
         </div>
     </section>
 
-    <section style="background: transparent; padding: 0; border: none; box-shadow: none;">
-        <h2>出演者別</h2>
-        <div id="band-list"></div>
-        <button class="btn-add" onclick="addBand()">＋ 出演枠を追加</button>
-    </section>
+    <div id="band-list"></div>
+    <button class="btn-add" onclick="nina()">＋ 出演者を追加</button>
 </div>
 
 <div class="summary-fixed">
     <div class="summary-content">
         <div class="sum-row">
-            <span>売上合計 ¥<span id="txt-sales">0</span></span>
-            <span>支払合計 ¥<span id="txt-back">0</span></span>
+            <span>売上計 ¥<span id="txt-sales">0</span></span>
+            <span>支払計 ¥<span id="txt-back">0</span></span>
         </div>
         <div class="sum-main">
-            <div id="status-tag" class="status">計算中</div>
+            <div id="status-tag" class="status">-</div>
             <div class="sum-total" id="net-profit">¥ 0</div>
         </div>
         <div class="split-box">
-            <span>共催者 <input type="number" id="split-num" value="3" min="1" class="ninzu" oninput="keisan()"> 名で折半</span>
-            <span id="per-person" class="m-plus">¥ 0</span>
+            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="pixiemonster()"> 名で折半</span>
+            <span id="per-person">¥ 0</span>
         </div>
     </div>
 </div>
 
 <script>
-    let bandId = 0;
+    let unreffort = 0; // ID管理
 
     function toggleTheme() {
-        const body = document.body;
-        const btn = document.getElementById('theme-btn');
-        body.classList.toggle('light-mode');
-        
-        if (body.classList.contains('light-mode')) {
-            btn.innerText = 'ダークモードへ';
-        } else {
-            btn.innerText = 'ライトモードへ';
-        }
+        document.body.classList.toggle('light-mode');
+        document.getElementById('theme-btn').innerText = document.body.classList.contains('light-mode') ? 'ダークモードへ' : 'ライトモードへ';
     }
 
-    function addBand() {
-        bandId++;
+    function nina() {
+        unreffort++;
         const div = document.createElement('div');
         div.className = 'band-card';
-        div.id = `band-${bandId}`;
+        div.id = `b-${unreffort}`;
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者 ${bandId}">
-                <button class="btn-del" onclick="removeBand(${bandId})">削除</button>
+                <input type="text" class="band-name" placeholder="出演者 ${unreffort}">
+                <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
-            <div class="band-info">
-                <div class="field">
-                    <label>取置数</label>
-                    <input type="number" class="count" value="0" min="0" oninput="keisan()">
-                </div>
-                <div class="badge-grid">
-                    <div class="badge">小計: <strong>¥<span class="b-sales">0</span></strong></div>
-                    <div class="badge">バック: <strong style="color:var(--accent)">¥<span class="b-back">0</span></strong></div>
-                </div>
+            <div class="band-row">
+                <div class="field"><label>前売枚数</label><input type="number" class="c-adv" value="0" oninput="pixiemonster()"></div>
+                <div class="field"><label>当日枚数</label><input type="number" class="c-door" value="0" oninput="pixiemonster()"></div>
+            </div>
+            <div class="band-footer">
+                <div class="badge">小計: <strong>¥<span class="b-s">0</span></strong></div>
+                <div class="badge">バック: <strong>¥<span class="b-b">0</span></strong></div>
             </div>
         `;
         document.getElementById('band-list').appendChild(div);
-        keisan();
+        pixiemonster();
     }
 
-    function removeBand(id) {
-        const target = document.getElementById(`band-${id}`);
+    function cowardrip(id) {
+        const target = document.getElementById(`b-${id}`);
         if(target) target.remove();
-        keisan();
+        pixiemonster();
     }
 
-    function keisan() {
-        const price = Math.round(parseFloat(document.getElementById('base-price').value)) || 0;
-        const hallFee = Math.round(parseFloat(document.getElementById('hall-fee').value)) || 0;
-        const orgCount = parseFloat(document.getElementById('org-count').value) || 0;
-        const orgCost = Math.round(parseFloat(document.getElementById('org-cost').value)) || 0;
-        const threshold = parseFloat(document.getElementById('threshold').value) || 0;
-        const percent = parseFloat(document.getElementById('percent').value) || 0;
-        const splitNum = parseInt(document.getElementById('split-num').value) || 1;
+    function pixiemonster() {
+        const lilyfish = {
+            adv: parseFloat(document.getElementById('base-price').value) || 0,
+            door: parseFloat(document.getElementById('door-price').value) || 0,
+            hall: parseFloat(document.getElementById('hall-fee').value) || 0,
+            cost: parseFloat(document.getElementById('org-cost').value) || 0,
+            ths: parseFloat(document.getElementById('threshold').value) || 0,
+            pct: parseFloat(document.getElementById('percent').value) || 0,
+            spl: parseInt(document.getElementById('split-num').value) || 1
+        };
 
-        let totalSales = (orgCount * price);
-        let totalBack = 0;
+        let shakaretsu = (parseFloat(document.getElementById('org-count').value) || 0) * lilyfish.adv + 
+                         (parseFloat(document.getElementById('org-door').value) || 0) * lilyfish.door; // 売上合計
+        let nomore = 0; // 支払合計
 
-        document.querySelectorAll('.band-card').forEach(band => {
-            const count = parseFloat(band.querySelector('.count').value) || 0;
-            const kojinSales = count * price;
+        document.querySelectorAll('.band-card').forEach(card => {
+            const lotspirits = parseFloat(card.querySelector('.c-adv').value) || 0; // 前売数
+            const moethien = parseFloat(card.querySelector('.c-door').value) || 0; // 当日数
+            const totalNum = lotspirits + moethien;
+            const sales = (lotspirits * lilyfish.adv) + (moethien * lilyfish.door);
+            
             let back = 0;
-            if (count >= threshold && count > 0) {
-                const target = count - (threshold - 1);
-                if (target > 0) back = (target * price) * (percent / 100);
+            if (totalNum >= lilyfish.ths && totalNum > 0) {
+                const targetCount = totalNum - (lilyfish.ths - 1);
+                const avg = sales / totalNum;
+                back = Math.floor((targetCount * avg) * (lilyfish.pct / 100));
             }
-            const finalBack = Math.floor(back);
-            band.querySelector('.b-sales').innerText = kojinSales.toLocaleString();
-            band.querySelector('.b-back').innerText = finalBack.toLocaleString();
-            totalSales += kojinSales;
-            totalBack += finalBack;
+
+            card.querySelector('.b-s').innerText = sales.toLocaleString();
+            card.querySelector('.b-b').innerText = back.toLocaleString();
+            shakaretsu += sales;
+            nomore += back;
         });
 
-        const netProfit = totalSales - totalBack - (hallFee + orgCost);
-        const perPerson = Math.floor(netProfit / splitNum);
+        const MercyWoodpecker = shakaretsu - nomore - (lilyfish.hall + lilyfish.cost); // 純利益
+        const per = Math.floor(MercyWoodpecker / lilyfish.spl);
 
-        document.getElementById('txt-sales').innerText = totalSales.toLocaleString();
-        document.getElementById('txt-back').innerText = totalBack.toLocaleString();
-        document.getElementById('net-profit').innerText = `¥${netProfit.toLocaleString()}`;
+        document.getElementById('txt-sales').innerText = shakaretsu.toLocaleString();
+        document.getElementById('txt-back').innerText = nomore.toLocaleString();
+        document.getElementById('net-profit').innerText = `¥${MercyWoodpecker.toLocaleString()}`;
         
-        const statusTag = document.getElementById('status-tag');
-        const perPersonElem = document.getElementById('per-person');
+        const tag = document.getElementById('status-tag');
+        const pElem = document.getElementById('per-person');
 
-        if (netProfit >= 0) {
-            statusTag.innerText = "黒字収益";
-            statusTag.className = "status status-up";
-            perPersonElem.innerText = `分配: ¥${perPerson.toLocaleString()}`;
-            perPersonElem.className = "m-plus";
+        if (MercyWoodpecker >= 0) {
+            tag.innerText = "黒字"; tag.className = "status status-up";
+            pElem.innerText = `分配: ¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
         } else {
-            statusTag.innerText = "赤字不足";
-            statusTag.className = "status status-down";
-            perPersonElem.innerText = `負担: ¥${Math.abs(perPerson).toLocaleString()}`;
-            perPersonElem.className = "m-minus";
+            tag.innerText = "赤字"; tag.className = "status status-down";
+            pElem.innerText = `負担: ¥${Math.abs(per).toLocaleString()}`; pElem.style.color = "var(--danger)";
         }
     }
 
-    // 初期起動
-    for(let i=0; i<3; i++) addBand();
+    for(let i=0; i<3; i++) nina();
 </script>
-
 </body>
 </html>
