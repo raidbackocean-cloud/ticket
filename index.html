@@ -20,12 +20,9 @@
         body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; overflow-x: hidden; position: fixed; width: 100%; height: 100%; }
         .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; }
         
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-left: 5px solid var(--accent); padding-left: 15px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 15px; }
         h1 { font-size: 1rem; margin: 0; }
         .btn-reset { border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; border-radius: 20px; font-size: 0.6rem; cursor: pointer; background: transparent; }
-
-        /* 操作ガイド */
-        .guide { font-size: 0.65rem; color: var(--accent); background: rgba(56, 189, 248, 0.1); padding: 8px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px dashed var(--accent); }
 
         section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
@@ -39,28 +36,35 @@
             padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center;
         }
 
-        /* クルクル・ホイール（左右にアイコン追加） */
+        /* 改良版：文言入りのホイール */
         .wheel {
             background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 100%);
             background-color: var(--input-bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            height: 48px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 10px;
+            padding: 0 8px;
             font-size: 1.4rem;
             font-weight: 900;
             color: var(--accent);
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
-            transition: transform 0.1s, box-shadow 0.1s;
+            position: relative;
         }
-        .wheel:active { transform: scale(0.98); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-        .wheel span { pointer-events: none; }
-        .wheel-icon { font-size: 0.6rem; opacity: 0.3; color: var(--text-main); }
+        .wheel:active { background-color: var(--border); }
+        
+        .wheel-guide { 
+            font-size: 0.55rem; 
+            color: var(--text-sub); 
+            opacity: 0.6; 
+            font-weight: bold; 
+            pointer-events: none;
+            letter-spacing: -0.5px;
+        }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -88,10 +92,6 @@
         <button class="btn-reset" onclick="location.reload()">全リセット</button>
     </header>
 
-    <div class="guide">
-        💡 枚数欄を指で左右にスライドすると、数値を調整できます
-    </div>
-
     <section>
         <h2>設定</h2>
         <div class="grid">
@@ -105,8 +105,20 @@
     <section>
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" id="org-count"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" id="org-door"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
+            <div class="field"><label>前売枚数</label>
+                <div class="wheel" id="org-count">
+                    <span class="wheel-guide">◀ スライド</span>
+                    <span class="val">0</span>
+                    <span class="wheel-guide">スライド ▶</span>
+                </div>
+            </div>
+            <div class="field"><label>当日枚数</label>
+                <div class="wheel" id="org-door">
+                    <span class="wheel-guide">◀ スライド</span>
+                    <span class="val">0</span>
+                    <span class="wheel-guide">スライド ▶</span>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -130,7 +142,7 @@
 
     function applyWheel(el) {
         let startX, startVal;
-        const step = 10;
+        const step = 8; // 感度を少し上げました
         const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
@@ -178,8 +190,20 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel b-adv"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
-                <div class="field"><label>当日</label><div class="wheel b-door"><span class="wheel-icon">◀</span><span class="val">0</span><span class="wheel-icon">▶</span></div></div>
+                <div class="field"><label>前売</label>
+                    <div class="wheel b-adv">
+                        <span class="wheel-guide">◀ スライド</span>
+                        <span class="val">0</span>
+                        <span class="wheel-guide">スライド ▶</span>
+                    </div>
+                </div>
+                <div class="field"><label>当日</label>
+                    <div class="wheel b-door">
+                        <span class="wheel-guide">◀ スライド</span>
+                        <span class="val">0</span>
+                        <span class="wheel-guide">スライド ▶</span>
+                    </div>
+                </div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
