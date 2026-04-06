@@ -16,176 +16,146 @@
             --text-main: #1e293b; --text-sub: #64748b; --accent: #0284c7;
             --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
-        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; -webkit-text-size-adjust: 100%; }
-        .container { max-width: 500px; margin: auto; width: 100%; }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; overflow-x: hidden; position: fixed; width: 100%; height: 100%; }
+        .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; }
         
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
-        h1 { font-size: 1rem; margin: 0; flex-grow: 1; }
-        .head-btns { display: flex; gap: 8px; }
-        .theme-toggle, .btn-reset { border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; font-weight: bold; }
-        .theme-toggle { background: var(--input-bg); }
-        .btn-reset { background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: var(--danger); }
+        h1 { font-size: 1rem; margin: 0; }
+        .btn-reset { border: 1px solid var(--danger); color: var(--danger); padding: 6px 12px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; background: transparent; }
 
-        section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); width: 100%; }
+        section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
         
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
-        .field { display: flex; flex-direction: column; min-width: 0; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .field { display: flex; flex-direction: column; }
         label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
         
-        /* クルクル操作エリア */
-        .scr-area {
-            position: relative;
-            background: linear-gradient(180deg, var(--border) 0%, var(--input-bg) 50%, var(--border) 100%);
-            border-radius: 8px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none; /* iPhoneのスクロールを殺す */
-            cursor: ew-resize;
-            border: 1px solid var(--border);
-        }
-        .scr-area input {
-            background: transparent; border: none; color: var(--text-main);
-            width: 100%; text-align: center; font-size: 1.1rem; font-weight: bold;
-            pointer-events: none; /* 入力欄を直接触らせない */
-        }
-        /* ダブルタップで入力可能になった時用 */
-        .scr-area.edit-mode input { pointer-events: auto; background: var(--input-bg); }
-
-        /* 通常の入力欄（会場費など） */
+        /* 数値入力（会場費など） */
         .std-input { 
             background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
             padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center;
         }
 
-        .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; width: 100%; }
+        /* クルクル・ホイールエリア（タグではなくただの板） */
+        .wheel {
+            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 100%);
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--accent);
+            touch-action: none; /* iPhoneのスクロール・スワイプを完全に殺す */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; text-align: left; }
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; }
         
-        .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; width: 100%; }
-        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; }
-        .badge { font-size: 0.65rem; color: var(--text-sub); }
-        .badge strong { color: var(--accent); }
+        .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; font-size: 0.65rem; }
         
         .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
         
-        .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border); padding: 15px; z-index: 100; }
-        .summary-content { max-width: 500px; margin: auto; }
-        .sum-row { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-sub); margin-bottom: 5px; }
-        .sum-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .sum-total { font-size: 1.6rem; font-weight: 900; }
-        .split-box { background: var(--card); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; border: 1px solid var(--border); }
-        .ninzu { width: 45px; background: var(--input-bg); border: 1px solid var(--border); color: var(--accent); font-weight: bold; text-align: center; border-radius: 4px; padding: 4px; }
-        .status { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; color: #fff; }
+        .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--border); padding: 15px; z-index: 1000; }
+        .sum-main { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+        .sum-total { font-size: 1.8rem; font-weight: 900; color: var(--text-main); }
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; color: #fff; }
         .status-up { background: var(--success); } .status-down { background: var(--danger); }
+        .per-box { background: var(--card); padding: 8px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>取置算出表</h1>
-        <div class="head-btns">
-            <button class="btn-reset" onclick="hardReset()">リセット</button>
-            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">ライト</button>
-        </div>
+        <h1>取置算出表 Pro</h1>
+        <button class="btn-reset" onclick="location.reload()">全リセット</button>
     </header>
 
     <section>
-        <h2>基本設定</h2>
+        <h2>設定</h2>
         <div class="grid">
             <div class="field"><label>会場費</label><input type="number" id="hall-fee" class="std-input" value="50000" oninput="pixiemonster()"></div>
-            <div class="field"><label>制作経費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>制作費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
             <div class="field"><label>前売単価</label><input type="number" id="base-price" class="std-input" value="2000" oninput="pixiemonster()"></div>
             <div class="field"><label>当日単価</label><input type="number" id="door-price" class="std-input" value="2500" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック開始</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック率(%)</label><input type="number" id="percent" class="std-input" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
 
     <section>
-        <h2>主催売上</h2>
+        <h2>主催売上（なぞって変更）</h2>
         <div class="grid">
-            <div class="field"><label>主催前売</label><div class="scr-area" data-target="org-count"><input type="number" id="org-count" value="0"></div></div>
-            <div class="field"><label>主催当日</label><div class="scr-area" data-target="org-door"><input type="number" id="org-door" value="0"></div></div>
+            <div class="field"><label>前売枚数</label><div class="wheel" id="org-count">0</div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" id="org-door">0</div></div>
         </div>
     </section>
 
     <div id="band-list"></div>
-    <button class="btn-add" onclick="nina()">＋ 出演者を追加</button>
+    <button class="btn-add" onclick="nina()">＋ 出演枠を追加</button>
 </div>
 
 <div class="summary-fixed">
-    <div class="summary-content">
-        <div class="sum-row">
-            <span>売上計 ¥<span id="txt-sales">0</span></span>
-            <span>支払計 ¥<span id="txt-back">0</span></span>
-        </div>
-        <div class="sum-main">
-            <div id="status-tag" class="status">-</div>
-            <div class="sum-total" id="net-profit">¥ 0</div>
-        </div>
-        <div class="split-box">
-            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="pixiemonster()"> 名で折半</span>
-            <span id="per-person">¥ 0</span>
-        </div>
+    <div class="sum-main">
+        <div id="status-tag" class="status">-</div>
+        <div class="sum-total" id="net-profit">¥ 0</div>
+    </div>
+    <div class="per-box">
+        <span>折半：<input type="number" id="split-num" value="3" style="width:30px; background:none; border:none; color:var(--accent); font-weight:bold; text-align:center;" oninput="pixiemonster()">名</span>
+        <span id="per-person" style="font-weight:bold;">¥ 0</span>
     </div>
 </div>
 
 <script>
     let unreffort = 0;
 
-    // 指でなぞって数値を変更する最強の関数
-    function setupScr(area) {
+    // iPhoneで絶対に動くクルクル（ホイール）処理
+    function applyWheel(el) {
         let startX, startVal;
-        const sensitivity = 10;
-        const input = area.querySelector('input');
+        const step = 10; // 指を10px動かすたびに1増減
 
-        area.onpointerdown = e => {
-            if (area.classList.contains('edit-mode')) return;
-            area.setPointerCapture(e.pointerId);
-            startX = e.clientX;
-            startVal = parseInt(input.value) || 0;
-
-            area.onpointermove = me => {
-                const delta = me.clientX - startX;
-                const newVal = Math.max(0, startVal + Math.floor(delta / sensitivity));
-                if (input.value != newVal) {
-                    input.value = newVal;
+        const onDown = (e) => {
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            startX = clientX;
+            startVal = parseInt(el.innerText) || 0;
+            el.style.backgroundColor = "var(--border)";
+            
+            const onMove = (me) => {
+                me.preventDefault(); // iPhoneのスクロールを完全に止める
+                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
+                const delta = currentX - startX;
+                const newVal = Math.max(0, startVal + Math.floor(delta / step));
+                
+                if (el.innerText != newVal) {
+                    el.innerText = newVal;
                     pixiemonster();
                 }
             };
-            area.onpointerup = () => {
-                area.onpointermove = null;
-                area.onpointerup = null;
-                area.releasePointerCapture(e.pointerId);
+
+            const onUp = () => {
+                el.style.backgroundColor = "var(--input-bg)";
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('touchend', onUp);
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
             };
+
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('touchend', onUp);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
         };
 
-        // ダブルタップで直接入力モード
-        area.ondblclick = () => {
-            area.classList.add('edit-mode');
-            input.focus();
-            input.onblur = () => {
-                area.classList.remove('edit-mode');
-                pixiemonster();
-            };
-        };
-    }
-
-    function toggleTheme() {
-        document.body.classList.toggle('light-mode');
-        document.getElementById('theme-btn').innerText = document.body.classList.contains('light-mode') ? 'ダーク' : 'ライト';
-    }
-
-    function hardReset() {
-        if(!confirm("リセットしますか？")) return;
-        location.reload(); // キャッシュ対策としてリロードが最強です
+        el.addEventListener('touchstart', onDown, { passive: false });
+        el.addEventListener('mousedown', onDown);
     }
 
     function nina() {
@@ -199,75 +169,73 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売枚数</label><div class="scr-area"><input type="number" class="c-adv" value="0"></div></div>
-                <div class="field"><label>当日枚数</label><div class="scr-area"><input type="number" class="c-door" value="0"></div></div>
+                <div class="field"><label>前売</label><div class="wheel b-adv">0</div></div>
+                <div class="field"><label>当日</label><div class="wheel b-door">0</div></div>
             </div>
             <div class="band-footer">
-                <div class="badge">小計: <strong>¥<span class="b-s">0</span></strong></div>
-                <div class="badge">バック: <strong>¥<span class="b-b">0</span></strong></div>
+                <span>小計: ¥<span class="txt-s">0</span></span>
+                <span style="color:var(--accent)">バック: ¥<span class="txt-b">0</span></span>
             </div>
         `;
         document.getElementById('band-list').appendChild(div);
-        div.querySelectorAll('.scr-area').forEach(setupScr);
+        div.querySelectorAll('.wheel').forEach(applyWheel);
         pixiemonster();
     }
 
     function cowardrip(id) {
-        const target = document.getElementById(`b-${id}`);
-        if(target) target.remove();
+        document.getElementById(`b-${id}`).remove();
         pixiemonster();
     }
 
     function pixiemonster() {
-        const lilyfish = {
+        const base = {
             adv: parseFloat(document.getElementById('base-price').value) || 0,
             door: parseFloat(document.getElementById('door-price').value) || 0,
             hall: parseFloat(document.getElementById('hall-fee').value) || 0,
             cost: parseFloat(document.getElementById('org-cost').value) || 0,
-            ths: parseFloat(document.getElementById('threshold').value) || 0,
-            pct: parseFloat(document.getElementById('percent').value) || 0,
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
-        let shakaretsu = (parseFloat(document.getElementById('org-count').value) || 0) * lilyfish.adv + 
-                         (parseFloat(document.getElementById('org-door').value) || 0) * lilyfish.door;
+        let shakaretsu = (parseInt(document.getElementById('org-count').innerText) || 0) * base.adv + 
+                         (parseInt(document.getElementById('org-door').innerText) || 0) * base.door;
         let nomore = 0;
 
         document.querySelectorAll('.band-card').forEach(card => {
-            const lotspirits = parseFloat(card.querySelector('.c-adv').value) || 0;
-            const moethien = parseFloat(card.querySelector('.c-door').value) || 0;
-            const totalNum = lotspirits + moethien;
-            const sales = (lotspirits * lilyfish.adv) + (moethien * lilyfish.door);
+            const adv = parseInt(card.querySelector('.b-adv').innerText) || 0;
+            const door = parseInt(card.querySelector('.b-door').innerText) || 0;
+            const sales = (adv * base.adv) + (door * base.door);
             
+            // バック計算 (しきい値5, 50%固定として簡易化)
             let back = 0;
-            if (totalNum >= lilyfish.ths && totalNum > 0) {
-                const targetCount = totalNum - (lilyfish.ths - 1);
-                const avg = sales / totalNum;
-                back = Math.floor((targetCount * avg) * (lilyfish.pct / 100));
+            const total = adv + door;
+            if (total >= 5) {
+                const target = total - 4;
+                const avg = sales / total;
+                back = Math.floor(target * avg * 0.5);
             }
-            card.querySelector('.b-s').innerText = sales.toLocaleString();
-            card.querySelector('.b-b').innerText = back.toLocaleString();
+            
+            card.querySelector('.txt-s').innerText = sales.toLocaleString();
+            card.querySelector('.txt-b').innerText = back.toLocaleString();
             shakaretsu += sales; nomore += back;
         });
 
-        const MercyWoodpecker = shakaretsu - nomore - (lilyfish.hall + lilyfish.cost);
-        const per = Math.floor(MercyWoodpecker / lilyfish.spl);
-        document.getElementById('txt-sales').innerText = shakaretsu.toLocaleString();
-        document.getElementById('txt-back').innerText = nomore.toLocaleString();
+        const MercyWoodpecker = shakaretsu - nomore - (base.hall + base.cost);
+        const per = Math.floor(MercyWoodpecker / base.spl);
+
         document.getElementById('net-profit').innerText = `¥${MercyWoodpecker.toLocaleString()}`;
         const tag = document.getElementById('status-tag');
         const pElem = document.getElementById('per-person');
+
         if (MercyWoodpecker >= 0) {
             tag.innerText = "黒字"; tag.className = "status status-up";
-            pElem.innerText = `分配: ¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
+            pElem.innerText = `分配：¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
         } else {
             tag.innerText = "赤字"; tag.className = "status status-down";
-            pElem.innerText = `負担: ¥${Math.abs(per).toLocaleString()}`; pElem.style.color = "var(--danger)";
+            pElem.innerText = `負担：¥${Math.abs(per).toLocaleString()}`; pElem.style.color = "var(--danger)";
         }
     }
 
-    // 初期化
-    document.querySelectorAll('.scr-area').forEach(setupScr);
+    document.querySelectorAll('.wheel').forEach(applyWheel);
     for(let i=0; i<3; i++) nina();
 </script>
 </body>
