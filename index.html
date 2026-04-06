@@ -14,7 +14,7 @@
         body.light-mode {
             --bg: #f8fafc; --card: #ffffff; --input-bg: #f1f5f9;
             --text-main: #1e293b; --text-sub: #64748b; --accent: #0284c7;
-            --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
+            --border: #e2e880; --summary-bg: rgba(255, 255, 255, 0.9);
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { 
@@ -75,7 +75,7 @@
     </header>
 
     <section>
-        <h2>基本設定</h2>
+        <h2>設定</h2>
         <div class="grid">
             <div class="field"><label>会場費</label><input type="number" id="hall-fee" class="std-input" value="50000" oninput="pixiemonster()"></div>
             <div class="field"><label>制作費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
@@ -89,8 +89,8 @@
     <section id="org-section">
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" data-type="org_adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" data-type="org_door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>前売枚数</label><div class="wheel" id="w-org-adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" id="w-org-door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
         </div>
     </section>
 
@@ -104,20 +104,20 @@
         <div class="sum-total" id="net-profit">¥ 0</div>
     </div>
     <div class="per-box">
-        <span>折半：<input type="number" id="split-num" value="3" style="width:35px; background:none; border:none; color:var(--accent); font-weight:bold; text-align:center; -webkit-user-select: text; user-select: text;" oninput="pixiemonster()">名</span>
+        <span>折半：<input type="number" id="split-num" value="3" style="width:35px; background:none; border:none; color:var(--accent); font-weight:bold; text-align:center;" oninput="pixiemonster()">名</span>
         <span id="per-person" style="font-weight:bold;">¥ 0</span>
     </div>
 </div>
 
 <script>
-    // 数値を保持する「真実の」データ
+    // ブラウザの表示に頼らない、内部計算専用の数値管理(NaN対策)
     const STORE = {
         org_adv: 0,
         org_door: 0,
-        bands: [] // 各バンドの {adv: 0, door: 0} を格納
+        bands: [] 
     };
 
-    function applyWheel(el, callback) {
+    function applyWheel(el, onUpdate) {
         let startX, startVal;
         const step = 10;
         const valSpan = el.querySelector('.val');
@@ -125,18 +125,20 @@
         const onDown = (e) => {
             const clientX = e.touches ? e.touches.clientX : e.clientX;
             startX = clientX;
+            // 画面のテキストではなく、前回の確定値からスタート
             startVal = parseInt(valSpan.textContent) || 0;
             
             const onMove = (me) => {
                 if (me.cancelable) me.preventDefault();
                 const currentX = me.touches ? me.touches.clientX : me.clientX;
                 const delta = currentX - startX;
-                const newVal = Math.max(0, startVal + Math.floor(delta / step));
+                // NaNにならないよう強制的に数値を保証
+                const newVal = Math.max(0, Math.floor(startVal + (delta / step))) || 0;
                 
                 if (valSpan.textContent != newVal) {
                     valSpan.textContent = newVal;
-                    callback(newVal); // データを更新
-                    pixiemonster(); // 再計算
+                    onUpdate(newVal); 
+                    pixiemonster(); 
                 }
             };
 
@@ -163,15 +165,14 @@
     }
 
     function nina() {
-        const bandData = { adv: 0, door: 0 };
-        const index = STORE.bands.length;
+        const bandData = { adv: 0, door: 0, active: true };
         STORE.bands.push(bandData);
 
         const div = document.createElement('div');
         div.className = 'band-card';
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者 ${index + 1}">
+                <input type="text" class="band-name" placeholder="出演者 ${STORE.bands.length}">
                 <button class="btn-del">削除</button>
             </div>
             <div class="band-row">
@@ -184,76 +185,79 @@
             </div>
         `;
 
-        // 削除ボタン
         div.querySelector('.btn-del').onclick = () => {
             div.remove();
-            bandData.removed = true; // 削除フラグ
+            bandData.active = false;
             pixiemonster();
         };
 
-        // ホイール適用
-        applyWheel(div.querySelector('.w-adv'), (v) => bandData.adv = v);
-        applyWheel(div.querySelector('.w-door'), (v) => bandData.door = v);
+        applyWheel(div.querySelector('.w-adv'), (v) => { bandData.adv = v; });
+        applyWheel(div.querySelector('.w-door'), (v) => { bandData.door = v; });
 
         document.getElementById('band-list').appendChild(div);
         pixiemonster();
     }
 
     function pixiemonster() {
-        const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+        // 設定値の読み込み(NaN対策付き)
+        const v = (id) => parseFloat(document.getElementById(id).value) || 0;
         const base = {
-            adv: getVal('base-price'), door: getVal('door-price'),
-            hall: getVal('hall-fee'), cost: getVal('org-cost'),
-            ths: getVal('threshold'), pct: getVal('percent'),
-            spl: parseInt(document.getElementById('split-num').value) || 1
+            adv: v('base-price'), door: v('door-price'),
+            hall: v('hall-fee'), cost: v('org-cost'),
+            ths: v('threshold'), pct: v('percent'),
+            spl: Math.max(1, parseInt(document.getElementById('split-num').value) || 1)
         };
 
+        // 主催売上の計算
         let totalS = (STORE.org_adv * base.adv) + (STORE.org_door * base.door);
         let totalB = 0;
 
-        // バンド計算
+        // バンド計算のループ
         const cards = document.querySelectorAll('.band-card');
-        let activeIdx = 0;
+        let cardIdx = 0;
         STORE.bands.forEach((band) => {
-            if (band.removed) return;
-            const card = cards[activeIdx++];
+            if (!band.active) return;
+            const card = cards[cardIdx++];
             if (!card) return;
 
             const sales = (band.adv * base.adv) + (band.door * base.door);
             let back = 0;
-            const total = band.adv + band.door;
-            if (total >= base.ths && total > 0) {
-                const target = total - (base.ths - 1);
-                const avg = sales / total;
-                back = Math.floor(target * avg * (base.pct / 100));
+            const totalCount = band.adv + band.door;
+
+            if (totalCount >= base.ths && totalCount > 0) {
+                const target = totalCount - (base.ths - 1);
+                const avgPrice = sales / totalCount;
+                back = Math.floor(target * avgPrice * (base.pct / 100));
             }
-            card.querySelector('.txt-s').innerText = sales.toLocaleString();
-            card.querySelector('.txt-b').innerText = back.toLocaleString();
-            totalS += sales; totalB += back;
+
+            card.querySelector('.txt-s').innerText = (sales || 0).toLocaleString();
+            card.querySelector('.txt-b').innerText = (back || 0).toLocaleString();
+            totalS += sales;
+            totalB += back;
         });
 
+        // 最終損益
         const profit = totalS - totalB - (base.hall + base.cost);
         const per = Math.floor(profit / base.spl);
-        document.getElementById('net-profit').innerText = `¥${profit.toLocaleString()}`;
+
+        document.getElementById('net-profit').innerText = `¥${(profit || 0).toLocaleString()}`;
         const tag = document.getElementById('status-tag');
         const pElem = document.getElementById('per-person');
 
         if (profit >= 0) {
-            tag.innerText = "黒字"; tag.className = "status status-up";
+            tag.innerText = "黒字収益"; tag.className = "status status-up";
             pElem.innerText = `分配：¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
         } else {
-            tag.innerText = "赤字"; tag.className = "status status-down";
+            tag.innerText = "赤字不足"; tag.className = "status status-down";
             pElem.innerText = `負担：¥${Math.abs(per).toLocaleString()}`; pElem.style.color = "var(--danger)";
         }
     }
 
-    // 主催用初期設定
-    document.querySelectorAll('#org-section .wheel').forEach(el => {
-        const type = el.getAttribute('data-type');
-        applyWheel(el, (v) => STORE[type] = v);
-    });
+    // 主催の初期化
+    applyWheel(document.getElementById('w-org-adv'), (v) => { STORE.org_adv = v; });
+    applyWheel(document.getElementById('w-org-door'), (v) => { STORE.org_door = v; });
 
-    // 初期バンド
+    // 初期バンド作成
     for(let i=0; i<3; i++) nina();
 </script>
 </body>
