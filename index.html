@@ -37,12 +37,18 @@
         input { 
             background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
             padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; min-width: 0; 
-            -webkit-appearance: none;
+            text-align: center; -webkit-appearance: none;
+        }
+        /* クルクル入力欄：マウスカーソルを左右矢印にして「回せる」ことを示唆 */
+        input.is-count { 
+            background: linear-gradient(180deg, var(--border) 0%, var(--input-bg) 50%, var(--border) 100%); 
+            cursor: ew-resize; 
+            user-select: none;
         }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; width: 100%; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; border-radius: 0; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; border-radius: 0; text-align: left; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
         
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; width: 100%; }
@@ -77,20 +83,20 @@
     <section>
         <h2>基本設定</h2>
         <div class="grid">
-            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="pixiemonster()" autocomplete="off"></div>
-            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="pixiemonster()" autocomplete="off"></div>
-            <div class="field"><label>前売単価</label><input type="number" id="base-price" value="2000" oninput="pixiemonster()" autocomplete="off"></div>
-            <div class="field"><label>当日単価</label><input type="number" id="door-price" value="2500" oninput="pixiemonster()" autocomplete="off"></div>
-            <div class="field"><label>バック開始</label><input type="number" id="threshold" value="5" oninput="pixiemonster()" autocomplete="off"></div>
-            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="pixiemonster()"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>前売単価</label><input type="number" id="base-price" value="2000" oninput="pixiemonster()"></div>
+            <div class="field"><label>当日単価</label><input type="number" id="door-price" value="2500" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック開始</label><input type="number" id="threshold" value="5" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
 
     <section>
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>主催前売</label><input type="number" id="org-count" value="0" oninput="pixiemonster()" autocomplete="off"></div>
-            <div class="field"><label>主催当日</label><input type="number" id="org-door" value="0" oninput="pixiemonster()" autocomplete="off"></div>
+            <div class="field"><label>主催前売</label><input type="number" id="org-count" class="is-count" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>主催当日</label><input type="number" id="org-door" class="is-count" value="0" oninput="pixiemonster()"></div>
         </div>
     </section>
 
@@ -109,7 +115,7 @@
             <div class="sum-total" id="net-profit">¥ 0</div>
         </div>
         <div class="split-box">
-            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="pixiemonster()" autocomplete="off"> 名で折半</span>
+            <span>共催者 <input type="number" id="split-num" value="3" class="ninzu" oninput="pixiemonster()"> 名で折半</span>
             <span id="per-person">¥ 0</span>
         </div>
     </div>
@@ -118,16 +124,61 @@
 <script>
     let unreffort = 0;
 
+    // スワイプ/ドラッグ入力ロジック (PC/スマホ両対応版)
+    function initScrollInput(el) {
+        let isDragging = false;
+        let startX, startVal;
+        const sensitivity = 8; 
+
+        // スマホ
+        el.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            startVal = parseInt(el.value) || 0;
+        }, {passive: false});
+
+        el.addEventListener('touchmove', e => {
+            const delta = e.touches[0].clientX - startX;
+            const newVal = Math.max(0, startVal + Math.floor(delta / sensitivity));
+            if (el.value != newVal) {
+                el.value = newVal;
+                pixiemonster();
+            }
+        }, {passive: false});
+
+        // PCマウス
+        el.addEventListener('mousedown', e => {
+            isDragging = true;
+            startX = e.clientX;
+            startVal = parseInt(el.value) || 0;
+            
+            const onMouseMove = me => {
+                if (!isDragging) return;
+                const delta = me.clientX - startX;
+                const newVal = Math.max(0, startVal + Math.floor(delta / sensitivity));
+                if (el.value != newVal) {
+                    el.value = newVal;
+                    pixiemonster();
+                }
+            };
+
+            const onMouseUp = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    }
+
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
         document.getElementById('theme-btn').innerText = document.body.classList.contains('light-mode') ? 'ダーク' : 'ライト';
     }
 
-    // 全リセット機能
     function hardReset() {
-        if(!confirm("すべての入力をリセットしますか？")) return;
-        
-        // 基本設定のリセット
+        if(!confirm("リセットしますか？")) return;
         document.getElementById('hall-fee').value = 50000;
         document.getElementById('org-cost').value = 0;
         document.getElementById('base-price').value = 2000;
@@ -137,12 +188,9 @@
         document.getElementById('org-count').value = 0;
         document.getElementById('org-door').value = 0;
         document.getElementById('split-num').value = 3;
-
-        // 出演者リストを空にして再作成
         document.getElementById('band-list').innerHTML = "";
         unreffort = 0;
         for(let i=0; i<3; i++) nina();
-        
         pixiemonster();
     }
 
@@ -153,12 +201,12 @@
         div.id = `b-${unreffort}`;
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者 ${unreffort}" autocomplete="off">
+                <input type="text" class="band-name" placeholder="出演者 ${unreffort}">
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売枚数</label><input type="number" class="c-adv" value="0" oninput="pixiemonster()" autocomplete="off"></div>
-                <div class="field"><label>当日枚数</label><input type="number" class="c-door" value="0" oninput="pixiemonster()" autocomplete="off"></div>
+                <div class="field"><label>前売枚数</label><input type="number" class="c-adv is-count" value="0"></div>
+                <div class="field"><label>当日枚数</label><input type="number" class="c-door is-count" value="0"></div>
             </div>
             <div class="band-footer">
                 <div class="badge">小計: <strong>¥<span class="b-s">0</span></strong></div>
@@ -166,6 +214,7 @@
             </div>
         `;
         document.getElementById('band-list').appendChild(div);
+        div.querySelectorAll('.is-count').forEach(initScrollInput);
         pixiemonster();
     }
 
@@ -202,23 +251,18 @@
                 const avg = sales / totalNum;
                 back = Math.floor((targetCount * avg) * (lilyfish.pct / 100));
             }
-
             card.querySelector('.b-s').innerText = sales.toLocaleString();
             card.querySelector('.b-b').innerText = back.toLocaleString();
-            shakaretsu += sales;
-            nomore += back;
+            shakaretsu += sales; nomore += back;
         });
 
         const MercyWoodpecker = shakaretsu - nomore - (lilyfish.hall + lilyfish.cost);
         const per = Math.floor(MercyWoodpecker / lilyfish.spl);
-
         document.getElementById('txt-sales').innerText = shakaretsu.toLocaleString();
         document.getElementById('txt-back').innerText = nomore.toLocaleString();
         document.getElementById('net-profit').innerText = `¥${MercyWoodpecker.toLocaleString()}`;
-        
         const tag = document.getElementById('status-tag');
         const pElem = document.getElementById('per-person');
-
         if (MercyWoodpecker >= 0) {
             tag.innerText = "黒字"; tag.className = "status status-up";
             pElem.innerText = `分配: ¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
@@ -228,6 +272,7 @@
         }
     }
 
+    document.querySelectorAll('.is-count').forEach(initScrollInput);
     for(let i=0; i<3; i++) nina();
 </script>
 </body>
