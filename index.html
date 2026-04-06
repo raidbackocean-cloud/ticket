@@ -17,33 +17,51 @@
             --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; }
-        .container { max-width: 500px; margin: auto; }
+        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px 15px 220px; transition: 0.3s; -webkit-text-size-adjust: 100%; }
+        .container { max-width: 500px; margin: auto; width: 100%; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
         h1 { font-size: 1.1rem; margin: 0; }
         .theme-toggle { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; }
-        section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
+        
+        section { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border); width: 100%; }
         h2 { font-size: 0.7rem; color: var(--accent); margin: 0 0 12px 0; letter-spacing: 1px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .field { display: flex; flex-direction: column; }
-        label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
-        input { background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none; }
-        .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
+        .field { display: flex; flex-direction: column; min-width: 0; } /* min-width: 0 が重要 */
+        label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        input { 
+            background: var(--input-bg); 
+            border: 1px solid var(--border); 
+            color: var(--text-main); 
+            padding: 10px; 
+            border-radius: 8px; 
+            font-size: 1rem; /* iPhoneでズームしない最小サイズ */
+            outline: none; 
+            width: 100%; 
+            min-width: 0; 
+            -webkit-appearance: none; /* iPhoneのデフォルトスタイル除去 */
+        }
+
+        .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; width: 100%; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; border-radius: 0; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
-        .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; }
-        .badge { font-size: 0.7rem; color: var(--text-sub); }
+        
+        .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; width: 100%; }
+        .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; gap: 5px; }
+        .badge { font-size: 0.65rem; color: var(--text-sub); white-space: nowrap; }
         .badge strong { color: var(--accent); }
+        
         .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(8px); border-top: 1px solid var(--border); padding: 15px; z-index: 100; }
+        
+        .summary-fixed { position: fixed; bottom: 0; left: 0; right: 0; background: var(--summary-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border); padding: 15px; z-index: 100; }
         .summary-content { max-width: 500px; margin: auto; }
         .sum-row { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-sub); margin-bottom: 5px; }
         .sum-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .sum-total { font-size: 1.6rem; font-weight: 900; }
         .split-box { background: var(--card); padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; border: 1px solid var(--border); }
-        .ninzu { width: 35px; background: var(--input-bg); border: none; color: var(--accent); font-weight: bold; text-align: center; border-radius: 4px; }
+        .ninzu { width: 45px; background: var(--input-bg); border: 1px solid var(--border); color: var(--accent); font-weight: bold; text-align: center; border-radius: 4px; padding: 4px; }
         .status { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; color: #fff; }
         .status-up { background: var(--success); } .status-down { background: var(--danger); }
     </style>
@@ -98,7 +116,7 @@
 </div>
 
 <script>
-    let unreffort = 0; // ID管理
+    let unreffort = 0;
 
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
@@ -146,12 +164,12 @@
         };
 
         let shakaretsu = (parseFloat(document.getElementById('org-count').value) || 0) * lilyfish.adv + 
-                         (parseFloat(document.getElementById('org-door').value) || 0) * lilyfish.door; // 売上合計
-        let nomore = 0; // 支払合計
+                         (parseFloat(document.getElementById('org-door').value) || 0) * lilyfish.door;
+        let nomore = 0;
 
         document.querySelectorAll('.band-card').forEach(card => {
-            const lotspirits = parseFloat(card.querySelector('.c-adv').value) || 0; // 前売数
-            const moethien = parseFloat(card.querySelector('.c-door').value) || 0; // 当日数
+            const lotspirits = parseFloat(card.querySelector('.c-adv').value) || 0;
+            const moethien = parseFloat(card.querySelector('.c-door').value) || 0;
             const totalNum = lotspirits + moethien;
             const sales = (lotspirits * lilyfish.adv) + (moethien * lilyfish.door);
             
@@ -168,7 +186,7 @@
             nomore += back;
         });
 
-        const MercyWoodpecker = shakaretsu - nomore - (lilyfish.hall + lilyfish.cost); // 純利益
+        const MercyWoodpecker = shakaretsu - nomore - (lilyfish.hall + lilyfish.cost);
         const per = Math.floor(MercyWoodpecker / lilyfish.spl);
 
         document.getElementById('txt-sales').innerText = shakaretsu.toLocaleString();
