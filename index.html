@@ -50,7 +50,7 @@
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; border-radius: 0; -webkit-user-select: text; user-select: text; }
-        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; font-size: 0.65rem; }
         .btn-add { width: 100%; padding: 12px; background: transparent; color: var(--accent); border: 2px dashed var(--accent); border-radius: 10px; font-weight: bold; cursor: pointer; }
@@ -74,14 +74,14 @@
         </div>
     </header>
 
-    <section>
+    <section id="config">
         <h2>基本設定</h2>
         <div class="grid">
             <div class="field"><label>会場費</label><input type="number" id="hall-fee" class="std-input" value="50000" oninput="pixiemonster()"></div>
             <div class="field"><label>制作費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
             <div class="field"><label>前売単価</label><input type="number" id="base-price" class="std-input" value="2000" oninput="pixiemonster()"></div>
             <div class="field"><label>当日単価</label><input type="number" id="door-price" class="std-input" value="2500" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック開始数</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック開始</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
             <div class="field"><label>バック率(%)</label><input type="number" id="percent" class="std-input" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
@@ -89,8 +89,8 @@
     <section id="org-section">
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" id="w-org-adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" id="w-org-door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>前売枚数</label><div class="wheel" id="w-org-adv" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" id="w-org-door" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
         </div>
     </section>
 
@@ -110,14 +110,8 @@
 </div>
 
 <script>
-    // ブラウザの表示に頼らない、内部計算専用の数値管理(NaN対策)
-    const STORE = {
-        org_adv: 0,
-        org_door: 0,
-        bands: [] 
-    };
-
-    function applyWheel(el, type, bandIndex = null) {
+    // 徹底して「画面の文字」を計算に使わない
+    function applyWheel(el) {
         let startX, startVal;
         const step = 10;
         const valSpan = el.querySelector('.val');
@@ -125,13 +119,8 @@
         const onDown = (e) => {
             const clientX = e.touches ? e.touches.clientX : e.clientX;
             startX = clientX;
-            
-            // 画面のテキストではなく、STORE内の純粋な数値からスタート
-            if (bandIndex === null) {
-                startVal = STORE[type] || 0;
-            } else {
-                startVal = STORE.bands[bandIndex][type] || 0;
-            }
+            // 重要：データ属性(data-val)から純粋な数字を取り出す
+            startVal = parseInt(el.getAttribute('data-val')) || 0;
             
             const onMove = (me) => {
                 if (me.cancelable) me.preventDefault();
@@ -139,16 +128,10 @@
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
-                if (valSpan.textContent != newVal) {
-                    valSpan.textContent = newVal;
-                    // STOREを更新
-                    if (bandIndex === null) {
-                        STORE[type] = newVal;
-                    } else {
-                        STORE.bands[bandIndex][type] = newVal;
-                    }
-                    pixiemonster();
-                }
+                // 数値を更新（表示とデータ属性の両方）
+                el.setAttribute('data-val', newVal);
+                valSpan.textContent = newVal;
+                pixiemonster();
             };
 
             const onUp = () => {
@@ -174,20 +157,16 @@
     }
 
     function nina() {
-        const bandIdx = STORE.bands.length;
-        const bandData = { adv: 0, door: 0, active: true };
-        STORE.bands.push(bandData);
-
         const div = document.createElement('div');
         div.className = 'band-card';
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者 ${bandIdx + 1}">
+                <input type="text" class="band-name" placeholder="出演者">
                 <button class="btn-del">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel w-adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-                <div class="field"><label>当日</label><div class="wheel w-door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+                <div class="field"><label>前売</label><div class="wheel w-adv" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+                <div class="field"><label>当日</label><div class="wheel w-door" data-val="0"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
@@ -197,40 +176,38 @@
 
         div.querySelector('.btn-del').onclick = () => {
             div.remove();
-            bandData.active = false;
             pixiemonster();
         };
 
-        applyWheel(div.querySelector('.w-adv'), 'adv', bandIdx);
-        applyWheel(div.querySelector('.w-door'), 'door', bandIdx);
-
+        div.querySelectorAll('.wheel').forEach(applyWheel);
         document.getElementById('band-list').appendChild(div);
         pixiemonster();
     }
 
     function pixiemonster() {
-        const v = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const getV = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const getW = (el) => parseInt(el.getAttribute('data-val')) || 0;
+
         const base = {
-            adv: v('base-price'), door: v('door-price'),
-            hall: v('hall-fee'), cost: v('org-cost'),
-            ths: v('threshold'), pct: v('percent'),
+            adv: getV('base-price'), door: getV('door-price'),
+            hall: getV('hall-fee'), cost: getV('org-cost'),
+            ths: getV('threshold'), pct: getV('percent'),
             spl: Math.max(1, parseInt(document.getElementById('split-num').value) || 1)
         };
 
-        let totalS = (STORE.org_adv * base.adv) + (STORE.org_door * base.door);
+        // 主催売上
+        let totalS = (getW(document.getElementById('w-org-adv')) * base.adv) + 
+                     (getW(document.getElementById('w-org-door')) * base.door);
         let totalB = 0;
 
-        const cards = document.querySelectorAll('.band-card');
-        let cardIdx = 0;
-        STORE.bands.forEach((band) => {
-            if (!band.active) return;
-            const card = cards[cardIdx++];
-            if (!card) return;
-
-            const sales = (band.adv * base.adv) + (band.door * base.door);
+        // 出演者計算（画面に存在するカードを直接ループして計算）
+        document.querySelectorAll('.band-card').forEach(card => {
+            const adv = getW(card.querySelector('.w-adv'));
+            const door = getW(card.querySelector('.w-door'));
+            const sales = (adv * base.adv) + (door * base.door);
+            
             let back = 0;
-            const totalCount = band.adv + band.door;
-
+            const totalCount = adv + door;
             if (totalCount >= base.ths && totalCount > 0) {
                 const target = totalCount - (base.ths - 1);
                 const avgPrice = sales / totalCount;
@@ -260,8 +237,7 @@
     }
 
     // 主催の初期化
-    applyWheel(document.getElementById('w-org-adv'), 'org_adv');
-    applyWheel(document.getElementById('w-org-door'), 'org_door');
+    document.querySelectorAll('#org-section .wheel').forEach(applyWheel);
 
     // 初期バンド
     for(let i=0; i<3; i++) nina();
