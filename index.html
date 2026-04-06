@@ -17,8 +17,9 @@
             --border: #e2e8f0; --summary-bg: rgba(255, 255, 255, 0.9);
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; overflow-x: hidden; position: fixed; width: 100%; height: 100%; }
-        .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; }
+        /* iPhoneの「戻る」や「スクロール」を完全に封じ込める設定 */
+        body { background: var(--bg); color: var(--text-main); margin: 0; padding: 15px; transition: 0.3s; overflow: hidden; position: fixed; width: 100%; height: 100%; touch-action: none; }
+        .container { max-width: 500px; margin: auto; height: 100%; overflow-y: auto; padding-bottom: 250px; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
         
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-left: 5px solid var(--accent); padding-left: 15px; }
         h1 { font-size: 1rem; margin: 0; }
@@ -36,7 +37,7 @@
             padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center;
         }
 
-        /* 改良版：文言入りのホイール */
+        /* ホイールエリア */
         .wheel {
             background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.2) 100%);
             background-color: var(--input-bg);
@@ -47,24 +48,15 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 8px;
-            font-size: 1.4rem;
-            font-weight: 900;
-            color: var(--accent);
-            touch-action: none;
+            touch-action: none; /* ここが重要：スワイプ入力を独占する */
             user-select: none;
             -webkit-user-select: none;
             position: relative;
         }
         .wheel:active { background-color: var(--border); }
         
-        .wheel-guide { 
-            font-size: 0.55rem; 
-            color: var(--text-sub); 
-            opacity: 0.6; 
-            font-weight: bold; 
-            pointer-events: none;
-            letter-spacing: -0.5px;
-        }
+        .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.5; font-weight: bold; pointer-events: none; }
+        .val { font-size: 1.4rem; font-weight: 900; color: var(--accent); pointer-events: none; }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -89,7 +81,7 @@
 <div class="container">
     <header>
         <h1>取置算出表 Pro</h1>
-        <button class="btn-reset" onclick="location.reload()">全リセット</button>
+        <button class="btn-reset" onclick="location.reload()">リセット</button>
     </header>
 
     <section>
@@ -107,16 +99,16 @@
         <div class="grid">
             <div class="field"><label>前売枚数</label>
                 <div class="wheel" id="org-count">
-                    <span class="wheel-guide">◀ スライド</span>
+                    <span class="wheel-guide">◀ なぞる</span>
                     <span class="val">0</span>
-                    <span class="wheel-guide">スライド ▶</span>
+                    <span class="wheel-guide">なぞる ▶</span>
                 </div>
             </div>
             <div class="field"><label>当日枚数</label>
                 <div class="wheel" id="org-door">
-                    <span class="wheel-guide">◀ スライド</span>
+                    <span class="wheel-guide">◀ なぞる</span>
                     <span class="val">0</span>
-                    <span class="wheel-guide">スライド ▶</span>
+                    <span class="wheel-guide">なぞる ▶</span>
                 </div>
             </div>
         </div>
@@ -132,7 +124,7 @@
         <div class="sum-total" id="net-profit">¥ 0</div>
     </div>
     <div class="per-box">
-        <span>折半人数：<input type="number" id="split-num" value="3" style="width:40px; background:var(--input-bg); border:1px solid var(--border); color:var(--accent); font-weight:bold; text-align:center; border-radius:4px;" oninput="pixiemonster()">名</span>
+        <span>折半：<input type="number" id="split-num" value="3" style="width:35px; background:none; border:none; color:var(--accent); font-weight:bold; text-align:center;" oninput="pixiemonster()">名</span>
         <span id="per-person" style="font-weight:bold;">¥ 0</span>
     </div>
 </div>
@@ -142,17 +134,18 @@
 
     function applyWheel(el) {
         let startX, startVal;
-        const step = 8; // 感度を少し上げました
+        const step = 12; // 指の動きに対する感度
         const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
-            const clientX = e.touches ? e.touches.clientX : e.clientX;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             startX = clientX;
-            startVal = parseInt(valSpan.innerText) || 0;
+            // NaN対策：現在の値を確実に数値として取得
+            startVal = parseInt(valSpan.innerText.replace(/[^0-9]/g, "")) || 0;
             
             const onMove = (me) => {
-                me.preventDefault();
-                const currentX = me.touches ? me.touches.clientX : me.clientX;
+                if (me.cancelable) me.preventDefault();
+                const currentX = me.touches ? me.touches[0].clientX : me.clientX;
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
@@ -190,20 +183,8 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label>
-                    <div class="wheel b-adv">
-                        <span class="wheel-guide">◀ スライド</span>
-                        <span class="val">0</span>
-                        <span class="wheel-guide">スライド ▶</span>
-                    </div>
-                </div>
-                <div class="field"><label>当日</label>
-                    <div class="wheel b-door">
-                        <span class="wheel-guide">◀ スライド</span>
-                        <span class="val">0</span>
-                        <span class="wheel-guide">スライド ▶</span>
-                    </div>
-                </div>
+                <div class="field"><label>前売</label><div class="wheel b-adv"><span class="wheel-guide">◀</span><span class="val">0</span><span class="wheel-guide">▶</span></div></div>
+                <div class="field"><label>当日</label><div class="wheel b-door"><span class="wheel-guide">◀</span><span class="val">0</span><span class="wheel-guide">▶</span></div></div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
@@ -221,21 +202,24 @@
     }
 
     function pixiemonster() {
+        const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+        const getWheelVal = (el) => parseInt(el.innerText.replace(/[^0-9]/g, "")) || 0;
+
         const base = {
-            adv: parseFloat(document.getElementById('base-price').value) || 0,
-            door: parseFloat(document.getElementById('door-price').value) || 0,
-            hall: parseFloat(document.getElementById('hall-fee').value) || 0,
-            cost: parseFloat(document.getElementById('org-cost').value) || 0,
+            adv: getVal('base-price'),
+            door: getVal('door-price'),
+            hall: getVal('hall-fee'),
+            cost: getVal('org-cost'),
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
-        let shakaretsu = (parseInt(document.getElementById('org-count').querySelector('.val').innerText) || 0) * base.adv + 
-                         (parseInt(document.getElementById('org-door').querySelector('.val').innerText) || 0) * base.door;
+        let shakaretsu = getWheelVal(document.getElementById('org-count').querySelector('.val')) * base.adv + 
+                         getWheelVal(document.getElementById('org-door').querySelector('.val')) * base.door;
         let nomore = 0;
 
         document.querySelectorAll('.band-card').forEach(card => {
-            const adv = parseInt(card.querySelector('.b-adv .val').innerText) || 0;
-            const door = parseInt(card.querySelector('.b-door .val').innerText) || 0;
+            const adv = getWheelVal(card.querySelector('.b-adv .val'));
+            const door = getWheelVal(card.querySelector('.b-door .val'));
             const sales = (adv * base.adv) + (door * base.door);
             
             let back = 0;
