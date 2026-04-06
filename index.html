@@ -44,12 +44,12 @@
             touch-action: none; position: relative;
         }
         .wheel:active { background-color: var(--border); }
-        .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.5; pointer-events: none; font-weight: 800; letter-spacing: 0.05em; }
+        .wheel-guide { font-size: 0.55rem; color: var(--text-sub); opacity: 0.5; pointer-events: none; font-weight: 800; }
         .val { font-size: 1.6rem; font-weight: 900; color: var(--accent); pointer-events: none; min-width: 45px; text-align: center; }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; -webkit-user-select: text; user-select: text; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; font-size: 0.9rem; border-radius: 0; -webkit-user-select: text; user-select: text; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; }
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .band-footer { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px; font-size: 0.65rem; }
@@ -81,16 +81,16 @@
             <div class="field"><label>制作費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
             <div class="field"><label>前売単価</label><input type="number" id="base-price" class="std-input" value="2000" oninput="pixiemonster()"></div>
             <div class="field"><label>当日単価</label><input type="number" id="door-price" class="std-input" value="2500" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック開始数</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック開始</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
             <div class="field"><label>バック率(%)</label><input type="number" id="percent" class="std-input" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
 
-    <section>
+    <section id="org-section">
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>前売枚数</label><div class="wheel" data-id="org_adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-            <div class="field"><label>当日枚数</label><div class="wheel" data-id="org_door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>前売枚数</label><div class="wheel" data-type="org_adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+            <div class="field"><label>当日枚数</label><div class="wheel" data-type="org_door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
         </div>
     </section>
 
@@ -110,19 +110,22 @@
 </div>
 
 <script>
-    let unreffort = 0;
-    const DATA_STORE = { org_adv: 0, org_door: 0 };
+    // 数値を保持する「真実の」データ
+    const STORE = {
+        org_adv: 0,
+        org_door: 0,
+        bands: [] // 各バンドの {adv: 0, door: 0} を格納
+    };
 
-    function applyWheel(el) {
+    function applyWheel(el, callback) {
         let startX, startVal;
-        const step = 12;
-        const dataKey = el.getAttribute('data-id');
+        const step = 10;
         const valSpan = el.querySelector('.val');
 
         const onDown = (e) => {
             const clientX = e.touches ? e.touches.clientX : e.clientX;
             startX = clientX;
-            startVal = DATA_STORE[dataKey] || 0;
+            startVal = parseInt(valSpan.textContent) || 0;
             
             const onMove = (me) => {
                 if (me.cancelable) me.preventDefault();
@@ -130,9 +133,11 @@
                 const delta = currentX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / step));
                 
-                DATA_STORE[dataKey] = newVal;
-                valSpan.textContent = newVal;
-                pixiemonster();
+                if (valSpan.textContent != newVal) {
+                    valSpan.textContent = newVal;
+                    callback(newVal); // データを更新
+                    pixiemonster(); // 再計算
+                }
             };
 
             const onUp = () => {
@@ -158,38 +163,39 @@
     }
 
     function nina() {
-        unreffort++;
-        const advKey = `adv_${unreffort}`;
-        const doorKey = `door_${unreffort}`;
-        DATA_STORE[advKey] = 0;
-        DATA_STORE[doorKey] = 0;
+        const bandData = { adv: 0, door: 0 };
+        const index = STORE.bands.length;
+        STORE.bands.push(bandData);
 
         const div = document.createElement('div');
         div.className = 'band-card';
-        div.id = `b-${unreffort}`;
         div.innerHTML = `
             <div class="band-head">
-                <input type="text" class="band-name" placeholder="出演者 ${unreffort}">
-                <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
+                <input type="text" class="band-name" placeholder="出演者 ${index + 1}">
+                <button class="btn-del">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売</label><div class="wheel" data-id="${advKey}"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
-                <div class="field"><label>当日</label><div class="wheel" data-id="${doorKey}"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+                <div class="field"><label>前売</label><div class="wheel w-adv"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
+                <div class="field"><label>当日</label><div class="wheel w-door"><span class="wheel-guide">◀ SLIDE</span><span class="val">0</span><span class="wheel-guide">SLIDE ▶</span></div></div>
             </div>
             <div class="band-footer">
                 <span>小計: ¥<span class="txt-s">0</span></span>
                 <span style="color:var(--accent)">バック: ¥<span class="txt-b">0</span></span>
             </div>
         `;
-        document.getElementById('band-list').appendChild(div);
-        div.querySelectorAll('.wheel').forEach(applyWheel);
-        pixiemonster();
-    }
 
-    function cowardrip(id) {
-        document.getElementById(`b-${id}`).remove();
-        delete DATA_STORE[`adv_${id}`];
-        delete DATA_STORE[`door_${id}`];
+        // 削除ボタン
+        div.querySelector('.btn-del').onclick = () => {
+            div.remove();
+            bandData.removed = true; // 削除フラグ
+            pixiemonster();
+        };
+
+        // ホイール適用
+        applyWheel(div.querySelector('.w-adv'), (v) => bandData.adv = v);
+        applyWheel(div.querySelector('.w-door'), (v) => bandData.door = v);
+
+        document.getElementById('band-list').appendChild(div);
         pixiemonster();
     }
 
@@ -202,17 +208,20 @@
             spl: parseInt(document.getElementById('split-num').value) || 1
         };
 
-        let shakaretsu = (DATA_STORE['org_adv'] || 0) * base.adv + (DATA_STORE['org_door'] || 0) * base.door;
-        let nomore = 0;
+        let totalS = (STORE.org_adv * base.adv) + (STORE.org_door * base.door);
+        let totalB = 0;
 
-        document.querySelectorAll('.band-card').forEach(card => {
-            const id = card.id.replace('b-', '');
-            const adv = DATA_STORE[`adv_${id}`] || 0;
-            const door = DATA_STORE[`door_${id}`] || 0;
-            const sales = (adv * base.adv) + (door * base.door);
-            
+        // バンド計算
+        const cards = document.querySelectorAll('.band-card');
+        let activeIdx = 0;
+        STORE.bands.forEach((band) => {
+            if (band.removed) return;
+            const card = cards[activeIdx++];
+            if (!card) return;
+
+            const sales = (band.adv * base.adv) + (band.door * base.door);
             let back = 0;
-            const total = adv + door;
+            const total = band.adv + band.door;
             if (total >= base.ths && total > 0) {
                 const target = total - (base.ths - 1);
                 const avg = sales / total;
@@ -220,16 +229,16 @@
             }
             card.querySelector('.txt-s').innerText = sales.toLocaleString();
             card.querySelector('.txt-b').innerText = back.toLocaleString();
-            shakaretsu += sales; nomore += back;
+            totalS += sales; totalB += back;
         });
 
-        const MercyWoodpecker = shakaretsu - nomore - (base.hall + base.cost);
-        const per = Math.floor(MercyWoodpecker / base.spl);
-        document.getElementById('net-profit').innerText = `¥${MercyWoodpecker.toLocaleString()}`;
+        const profit = totalS - totalB - (base.hall + base.cost);
+        const per = Math.floor(profit / base.spl);
+        document.getElementById('net-profit').innerText = `¥${profit.toLocaleString()}`;
         const tag = document.getElementById('status-tag');
         const pElem = document.getElementById('per-person');
 
-        if (MercyWoodpecker >= 0) {
+        if (profit >= 0) {
             tag.innerText = "黒字"; tag.className = "status status-up";
             pElem.innerText = `分配：¥${per.toLocaleString()}`; pElem.style.color = "var(--success)";
         } else {
@@ -238,7 +247,13 @@
         }
     }
 
-    document.querySelectorAll('.wheel').forEach(applyWheel);
+    // 主催用初期設定
+    document.querySelectorAll('#org-section .wheel').forEach(el => {
+        const type = el.getAttribute('data-type');
+        applyWheel(el, (v) => STORE[type] = v);
+    });
+
+    // 初期バンド
     for(let i=0; i<3; i++) nina();
 </script>
 </body>
