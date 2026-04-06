@@ -34,23 +34,37 @@
         .field { display: flex; flex-direction: column; min-width: 0; }
         label { font-size: 0.65rem; font-weight: bold; margin-bottom: 4px; color: var(--text-sub); }
         
-        input { 
-            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
-            padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; min-width: 0; 
-            text-align: center; -webkit-appearance: none;
+        /* クルクル操作エリア */
+        .scr-area {
+            position: relative;
+            background: linear-gradient(180deg, var(--border) 0%, var(--input-bg) 50%, var(--border) 100%);
+            border-radius: 8px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none; /* iPhoneのスクロールを殺す */
+            cursor: ew-resize;
+            border: 1px solid var(--border);
         }
-        /* クルクル入力欄：iPhoneでの操作を優先する設定 */
-        input.is-count { 
-            background: linear-gradient(180deg, var(--border) 0%, var(--input-bg) 50%, var(--border) 100%); 
-            cursor: ew-resize; 
-            touch-action: none; /* ブラウザのスクロールを無効化 */
-            user-select: none;
-            -webkit-user-select: none;
+        .scr-area input {
+            background: transparent; border: none; color: var(--text-main);
+            width: 100%; text-align: center; font-size: 1.1rem; font-weight: bold;
+            pointer-events: none; /* 入力欄を直接触らせない */
+        }
+        /* ダブルタップで入力可能になった時用 */
+        .scr-area.edit-mode input { pointer-events: auto; background: var(--input-bg); }
+
+        /* 通常の入力欄（会場費など） */
+        .std-input { 
+            background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main); 
+            padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%; text-align: center;
         }
 
         .band-card { background: var(--input-bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; width: 100%; }
         .band-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; border-radius: 0; text-align: left; }
+        .band-name { background: transparent; border: none; border-bottom: 1px solid var(--border); color: var(--text-main); font-weight: bold; width: 60%; text-align: left; }
         .btn-del { color: var(--danger); background: none; border: none; font-size: 0.7rem; cursor: pointer; }
         
         .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; width: 100%; }
@@ -85,20 +99,20 @@
     <section>
         <h2>基本設定</h2>
         <div class="grid">
-            <div class="field"><label>会場費</label><input type="number" id="hall-fee" value="50000" oninput="pixiemonster()"></div>
-            <div class="field"><label>制作経費</label><input type="number" id="org-cost" value="0" oninput="pixiemonster()"></div>
-            <div class="field"><label>前売単価</label><input type="number" id="base-price" value="2000" oninput="pixiemonster()"></div>
-            <div class="field"><label>当日単価</label><input type="number" id="door-price" value="2500" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック開始</label><input type="number" id="threshold" value="5" oninput="pixiemonster()"></div>
-            <div class="field"><label>バック率(%)</label><input type="number" id="percent" value="50" oninput="pixiemonster()"></div>
+            <div class="field"><label>会場費</label><input type="number" id="hall-fee" class="std-input" value="50000" oninput="pixiemonster()"></div>
+            <div class="field"><label>制作経費</label><input type="number" id="org-cost" class="std-input" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>前売単価</label><input type="number" id="base-price" class="std-input" value="2000" oninput="pixiemonster()"></div>
+            <div class="field"><label>当日単価</label><input type="number" id="door-price" class="std-input" value="2500" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック開始</label><input type="number" id="threshold" class="std-input" value="5" oninput="pixiemonster()"></div>
+            <div class="field"><label>バック率(%)</label><input type="number" id="percent" class="std-input" value="50" oninput="pixiemonster()"></div>
         </div>
     </section>
 
     <section>
         <h2>主催売上</h2>
         <div class="grid">
-            <div class="field"><label>主催前売</label><input type="number" id="org-count" class="is-count" value="0" oninput="pixiemonster()"></div>
-            <div class="field"><label>主催当日</label><input type="number" id="org-door" class="is-count" value="0" oninput="pixiemonster()"></div>
+            <div class="field"><label>主催前売</label><div class="scr-area" data-target="org-count"><input type="number" id="org-count" value="0"></div></div>
+            <div class="field"><label>主催当日</label><div class="scr-area" data-target="org-door"><input type="number" id="org-door" value="0"></div></div>
         </div>
     </section>
 
@@ -126,30 +140,40 @@
 <script>
     let unreffort = 0;
 
-    // 最新のPointerEventを使用した最強のiPhone対策
-    function initScrollInput(el) {
+    // 指でなぞって数値を変更する最強の関数
+    function setupScr(area) {
         let startX, startVal;
-        const sensitivity = 10; 
+        const sensitivity = 10;
+        const input = area.querySelector('input');
 
-        el.onpointerdown = e => {
-            // 要素にポインターをロック（指が外れても追跡）
-            el.setPointerCapture(e.pointerId);
+        area.onpointerdown = e => {
+            if (area.classList.contains('edit-mode')) return;
+            area.setPointerCapture(e.pointerId);
             startX = e.clientX;
-            startVal = parseInt(el.value) || 0;
+            startVal = parseInt(input.value) || 0;
 
-            el.onpointermove = me => {
+            area.onpointermove = me => {
                 const delta = me.clientX - startX;
                 const newVal = Math.max(0, startVal + Math.floor(delta / sensitivity));
-                if (el.value != newVal) {
-                    el.value = newVal;
+                if (input.value != newVal) {
+                    input.value = newVal;
                     pixiemonster();
                 }
             };
+            area.onpointerup = () => {
+                area.onpointermove = null;
+                area.onpointerup = null;
+                area.releasePointerCapture(e.pointerId);
+            };
+        };
 
-            el.onpointerup = () => {
-                el.onpointermove = null;
-                el.onpointerup = null;
-                el.releasePointerCapture(e.pointerId);
+        // ダブルタップで直接入力モード
+        area.ondblclick = () => {
+            area.classList.add('edit-mode');
+            input.focus();
+            input.onblur = () => {
+                area.classList.remove('edit-mode');
+                pixiemonster();
             };
         };
     }
@@ -161,19 +185,7 @@
 
     function hardReset() {
         if(!confirm("リセットしますか？")) return;
-        document.getElementById('hall-fee').value = 50000;
-        document.getElementById('org-cost').value = 0;
-        document.getElementById('base-price').value = 2000;
-        document.getElementById('door-price').value = 2500;
-        document.getElementById('threshold').value = 5;
-        document.getElementById('percent').value = 50;
-        document.getElementById('org-count').value = 0;
-        document.getElementById('org-door').value = 0;
-        document.getElementById('split-num').value = 3;
-        document.getElementById('band-list').innerHTML = "";
-        unreffort = 0;
-        for(let i=0; i<3; i++) nina();
-        pixiemonster();
+        location.reload(); // キャッシュ対策としてリロードが最強です
     }
 
     function nina() {
@@ -187,8 +199,8 @@
                 <button class="btn-del" onclick="cowardrip(${unreffort})">削除</button>
             </div>
             <div class="band-row">
-                <div class="field"><label>前売枚数</label><input type="number" class="c-adv is-count" value="0"></div>
-                <div class="field"><label>当日枚数</label><input type="number" class="c-door is-count" value="0"></div>
+                <div class="field"><label>前売枚数</label><div class="scr-area"><input type="number" class="c-adv" value="0"></div></div>
+                <div class="field"><label>当日枚数</label><div class="scr-area"><input type="number" class="c-door" value="0"></div></div>
             </div>
             <div class="band-footer">
                 <div class="badge">小計: <strong>¥<span class="b-s">0</span></strong></div>
@@ -196,7 +208,7 @@
             </div>
         `;
         document.getElementById('band-list').appendChild(div);
-        div.querySelectorAll('.is-count').forEach(initScrollInput);
+        div.querySelectorAll('.scr-area').forEach(setupScr);
         pixiemonster();
     }
 
@@ -254,7 +266,8 @@
         }
     }
 
-    document.querySelectorAll('.is-count').forEach(initScrollInput);
+    // 初期化
+    document.querySelectorAll('.scr-area').forEach(setupScr);
     for(let i=0; i<3; i++) nina();
 </script>
 </body>
